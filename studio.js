@@ -26,11 +26,11 @@
     for(const {name,data} of files) {
       const nameBytes=encoder.encode(name),crc=crc32(data);
       const head=new Uint8Array(30+nameBytes.length),h=new DataView(head.buffer);
-      h.setUint32(0,0x04034b50,true);h.setUint16(4,20,true);h.setUint16(8,0,true);h.setUint32(14,crc,true);
+      h.setUint32(0,0x04034b50,true);h.setUint16(4,20,true);h.setUint16(8,0,true);h.setUint16(12,33,true);h.setUint32(14,crc,true);
       h.setUint32(18,data.length,true);h.setUint32(22,data.length,true);h.setUint16(26,nameBytes.length,true);head.set(nameBytes,30);
       local.push(head,data);
       const dir=new Uint8Array(46+nameBytes.length),d=new DataView(dir.buffer);
-      d.setUint32(0,0x02014b50,true);d.setUint16(4,20,true);d.setUint16(6,20,true);d.setUint32(16,crc,true);
+      d.setUint32(0,0x02014b50,true);d.setUint16(4,20,true);d.setUint16(6,20,true);d.setUint16(14,33,true);d.setUint32(16,crc,true);
       d.setUint32(20,data.length,true);d.setUint32(24,data.length,true);d.setUint16(28,nameBytes.length,true);
       d.setUint32(42,offset,true);dir.set(nameBytes,46);central.push(dir);offset+=head.length+data.length;
     }
