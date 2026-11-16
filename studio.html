@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FLOOR 05 — prepara le foto</title>
+  <style>
+    :root{font-family:Arial,Helvetica,sans-serif;background:#e4dfc4;color:#292b23}*{box-sizing:border-box}body{margin:0;min-height:100vh;padding:clamp(24px,6vw,80px)}main{max-width:700px;margin:auto}.eyebrow{font-size:11px;letter-spacing:.25em;font-weight:700;color:#786d4b}h1{font-size:clamp(44px,8vw,95px);line-height:.9;letter-spacing:-.065em;margin:30px 0}p{line-height:1.6;max-width:580px}form{margin-top:40px;padding:30px;background:#f4f0da;border:1px solid #ada787;box-shadow:12px 12px 0 #c0b995}label{display:block;font-size:12px;font-weight:700;letter-spacing:.08em;margin:24px 0 9px}input,textarea{display:block;width:100%;font:inherit;padding:13px;border:1px solid #8e896c;border-radius:0;background:#fffdf1;color:#25251c}textarea{min-height:125px;resize:vertical}button{background:#34372b;color:#f6f0d4;border:0;padding:17px 23px;margin-top:27px;font-weight:700;letter-spacing:.12em;cursor:pointer}button:disabled{opacity:.5;cursor:wait}small{display:block;font-size:11px;line-height:1.5;margin-top:10px;color:#716b56}#status{min-height:50px;margin:25px 0;font-weight:700}code{background:#d5d0af;padding:2px 5px}
+  </style>
+</head>
+<body>
+  <main>
+    <p class="eyebrow">FLOOR 05 / STRUMENTO LOCALE</p>
+    <h1>Prepara i ricordi.</h1>
+    <p>Seleziona le foto originali. Il browser ne crea copie leggere, le cifra e scarica uno ZIP. Gli originali restano sul tuo computer. La password non viene salvata nello ZIP né nel codice del sito.</p>
+    <form id="form">
+      <label for="photos">FOTO</label>
+      <input id="photos" type="file" accept="image/*" multiple required>
+      <small>In questa prima stanza compaiono le prime due foto. Le altre restano cifrate e saranno distribuite nelle stanze successive.</small>
+      <label for="password">FRASE DI ACCESSO</label>
+      <input id="password" type="password" minlength="14" required autocomplete="new-password">
+      <small>Almeno 14 caratteri. Conservala: senza questa frase non potrai aprire le foto, nemmeno tu.</small>
+      <label for="repeat">RIPETI LA FRASE</label>
+      <input id="repeat" type="password" minlength="14" required autocomplete="new-password">
+      <label for="caption">DIDASCALIA FACOLTATIVA (UGUALE PER TUTTE, PER ORA)</label>
+      <textarea id="caption" placeholder="Una frase breve che leggerà quando trova una foto."></textarea>
+      <button id="generate" type="submit">CREA LO ZIP CIFRATO ↗</button>
+    </form>
+    <p id="status" role="status"></p>
+    <p><small>Apri questo file anche senza connessione. Per aggiornare l'archivio, seleziona di nuovo tutte le foto: la nuova esportazione sostituisce quella precedente.</small></p>
+  </main>
+  <script src="studio.js"></script>
+</body>
+</html>
