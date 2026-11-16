@@ -21,7 +21,7 @@ Questa protezione riguarda l'archivio delle foto. Il codice, la geometria, i tes
 
 ## Pubblicazione gratuita
 
-GitHub Pages va attivato solo dopo aver caricato `assets/manifest.json`. Nelle impostazioni del repository, **Pages → Build and deployment → Deploy from a branch → main / (root)**. La prima apertura va verificata sia con frase errata sia con frase corretta. Il sito non contiene tracker né dipendenze esterne.
+L'anteprima senza foto è già pubblicata su GitHub Pages. Quando caricherai `assets/manifest.json`, la pagina mostrerà la schermata di accesso. La prima apertura con l'archivio va verificata sia con frase errata sia con frase corretta. Il sito non contiene tracker né dipendenze esterne.
 
 ## Stato del progetto
 
