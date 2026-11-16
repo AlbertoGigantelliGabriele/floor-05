@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#9d985e">
+  <meta name="description" content="Floor 05 — un luogo da esplorare.">
+  <title>FLOOR 05</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main id="app">
+    <canvas id="world" aria-label="Stanza esplorabile in prima persona"></canvas>
+    <div class="grain" aria-hidden="true"></div>
+    <div class="vignette" aria-hidden="true"></div>
+    <div class="hud" id="hud" hidden>
+      <span class="floor">FLOOR <b>05</b></span>
+      <span class="position" id="position">ZONE 01 / 05</span>
+      <button id="sound" class="icon-button" type="button" aria-label="Attiva audio">AUDIO OFF</button>
+    </div>
+    <div id="reticle" class="reticle" hidden aria-hidden="true"></div>
+    <div id="prompt" class="prompt" hidden>Premi <kbd>E</kbd> per esaminare</div>
+    <div id="controls" class="controls" hidden>
+      <div class="move-pad" aria-label="Comandi movimento">
+        <button data-move="forward" class="up" aria-label="Avanti">↑</button>
+        <button data-move="left" class="left" aria-label="Sinistra">←</button>
+        <button data-move="back" class="down" aria-label="Indietro">↓</button>
+        <button data-move="right" class="right" aria-label="Destra">→</button>
+      </div>
+      <button id="mobile-interact" class="interact" hidden>ESAMINA</button>
+    </div>
+
+    <section id="intro" class="screen intro" aria-labelledby="intro-title">
+      <div class="intro-noise" aria-hidden="true"></div>
+      <div class="intro-content">
+        <p class="eyebrow">UN LUOGO TRA I RICORDI</p>
+        <h1 id="intro-title">FLOOR<span>05</span></h1>
+        <p class="intro-copy">C'è qualcosa in questa stanza che ti appartiene.</p>
+        <form id="unlock-form" hidden>
+          <label for="passphrase">LA FRASE CHE APRE LA PORTA</label>
+          <input id="passphrase" type="password" autocomplete="off" spellcheck="false" required>
+          <p id="unlock-error" role="alert" hidden>La frase non apre questa porta.</p>
+          <button class="primary" type="submit">ENTRA <span>↗</span></button>
+        </form>
+        <button id="enter" class="primary" type="button">ENTRA NELL'ANTEPRIMA <span>↗</span></button>
+        <p id="demo-notice" class="fineprint">Anteprima senza foto. Quando aggiungerai l'archivio cifrato, qui apparirà l'accesso con la tua frase.</p>
+      </div>
+      <div class="intro-footer"><span>W A S D · MUOVITI</span><span>MOUSE · GUARDA</span><span>E · ESAMINA</span></div>
+    </section>
+
+    <section id="note" class="modal" hidden aria-labelledby="note-title" role="dialog" aria-modal="true">
+      <div class="note-card">
+        <button id="close-note" class="close" aria-label="Chiudi">×</button>
+        <p id="note-kicker" class="eyebrow"></p>
+        <h2 id="note-title"></h2>
+        <p id="note-body"></p>
+        <div id="photo-slot" class="photo-slot" hidden><img id="memory-image" alt="Un ricordo trovato nella stanza" hidden><span id="photo-placeholder">UNA FOTO SARÀ QUI</span><small id="photo-caption">Il file sarà cifrato prima dell'upload.</small></div>
+        <button id="note-continue" class="text-button">TORNA NELLA STANZA <span>↗</span></button>
+      </div>
+    </section>
+    <div class="instructions" id="instructions" hidden>WASD per camminare · trascina o muovi il mouse per guardarti intorno · E per esaminare</div>
+  </main>
+  <script src="vault.js" defer></script>
+  <script src="world.js" defer></script>
+</body>
+</html>
