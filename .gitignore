@@ -1,0 +1,16 @@
+# Never commit original or unencrypted personal media.
+originali/
+foto-originali/
+private/
+*.heic
+*.jpg
+*.jpeg
+*.png
+*.webp
+*.mov
+*.mp4
+!assets/*.bin
+
+# Local exports and editor artifacts.
+*.zip
+.DS_Store
