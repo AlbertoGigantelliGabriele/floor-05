@@ -1,6 +1,6 @@
 # Floor 05 — prima stanza
 
-Un'anteprima esplorabile di una backroom romantica e liminale. La stanza gialla è volutamente enorme e vuota; al centro c'è una catasta irregolare di mobili. Gli indizi delle città sono mescolati tra i mobili. Le foto sono assenti finché non viene preparato l'archivio cifrato.
+Un'anteprima esplorabile di una backroom romantica e liminale. La stanza gialla è volutamente enorme e vuota; al centro c'è una catasta irregolare di valigie e oggetti legati ai viaggi. Londra, Oxford, Parigi, Varsavia, Milano, Civitavecchia, Roma e Napoli sono mescolate senza ordine. Le foto sono assenti finché non viene preparato l'archivio cifrato.
 
 ## Esplorazione
 
