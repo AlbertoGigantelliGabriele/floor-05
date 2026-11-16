@@ -26,20 +26,64 @@
     quad([[b,y,e],[b,y,c],[b,t,c],[b,t,e]], shade(color,.84), kind, 'right');
     quad([[a,t,e],[b,t,e],[b,t,c],[a,t,c]], shade(color,1.11), kind, 'top');
   }
-  function chair(x, z, angle = 0, tint = '#806942') {
-    // Slightly different sizes and lean make the heap feel accidental.
-    box(x,.67,z,.68,.16,.66,tint,'wood');
-    box(x,.78,z-.29,.65,.89,.12,tint,'wood');
-    for (const dx of [-.25,.25]) for (const dz of [-.24,.24]) box(x+dx,.04,z+dz,.09,.67,.09,shade(tint,.76),'wood');
-    if (angle) box(x+.19,.86,z+.17,.08,.55,.08,shade(tint,.75),'wood');
+  function sign(x,y,z,w,h,label,color='#d8c49b',ink='#3e3b31') {
+    quad([[x-w/2,y,z],[x+w/2,y,z],[x+w/2,y+h,z],[x-w/2,y+h,z]],color,'sign',{label,ink});
   }
-  function couch(x, y, z, w, tint = '#b0a88c') {
-    box(x,y,z,w,.45,1.25,tint,'upholstery');
-    box(x,y+.4,z-.47,w,.83,.3,shade(tint,.83),'upholstery');
-    box(x-w/2+.16,y+.26,z,.32,.53,1.12,shade(tint,.86),'upholstery');
-    box(x+w/2-.16,y+.26,z,.32,.53,1.12,shade(tint,.86),'upholstery');
-    const count = w > 2.1 ? 3 : 2;
-    for (let i=0;i<count;i++) box(x-w/2+(i+.5)*w/count,y+.43,z+.16,w/count-.1,.16,.73,shade(tint,1.04),'upholstery');
+  function suitcase(x,y,z,w,h,d,color) {
+    box(x,y,z,w,h,d,color,'luggage');
+    box(x-w*.32,y+.03,z+d/2+.018,.055,h-.08,.025,'#a99774','strap');
+    box(x+w*.32,y+.03,z+d/2+.018,.055,h-.08,.025,'#a99774','strap');
+    box(x,y+h,z,.4,.16,.13,'#6a5236','handle');
+    box(x-w*.38,y+.06,z+d/2+.022,.12,.12,.025,'#b8a267','latch');
+  }
+  function eiffel(x,y,z) {
+    const iron='#877959',h=1.78,w=.92;
+    for(const side of [-1,1]) {
+      const foot=x+side*w/2,top=x+side*.055;
+      quad([[foot-.075,y,z+.27],[foot+.075,y,z+.27],[top+.045,y+h,z+.12],[top-.045,y+h,z+.12]],iron,'iron');
+      quad([[foot-.075,y,z-.27],[foot+.075,y,z-.27],[top+.045,y+h,z-.12],[top-.045,y+h,z-.12]],shade(iron,.9),'iron');
+    }
+    for(const level of [.25,.72,1.17,1.47]) box(x,y+level,z+.28,w*(1-level/h)*.9,.075,.12,'#a3916a','iron');
+    box(x,y+1.73,z,.045,.25,.045,'#8b7b59','iron');
+  }
+  function phoneBooth(x,y,z) {
+    box(x,y,z,1.04,1.86,.72,'#9d473a','souvenir');
+    box(x,y+.21,z+.37,.79,1.34,.018,'#394d4b','glass');
+    for(const dx of [-.36,0,.36])box(x+dx,y+.2,z+.4,.055,1.33,.025,'#ad4d3c','souvenir');
+    for(const dy of [.53,.95,1.31])box(x,y+dy,z+.4,.77,.055,.025,'#ad4d3c','souvenir');
+    sign(x,y+1.64,z+.39,.78,.16,'LONDON','#d8ccad','#493c37');
+  }
+  function warsawTower(x,y,z) {
+    box(x,y,z,.96,1.12,.63,'#b3a58a','stone');
+    box(x,y+1.12,z,.69,.48,.55,'#a99980','stone');
+    box(x,y+1.6,z,.42,.35,.4,'#9f9076','stone');
+    box(x,y+1.95,z,.18,.43,.18,'#8c816b','stone');
+    box(x,y+2.38,z,.04,.17,.04,'#8c816b','stone');
+    sign(x,y+1.28,z+.29,.27,.22,'◷','#e1d8bc','#4b493c');
+    for(const dx of [-.3,0,.3])box(x+dx,y+.2,z+.33,.08,.75,.02,'#7b7865','window');
+  }
+  function tram(x,y,z) {
+    box(x,y,z,2.2,.75,.72,'#b89e51','tram');
+    box(x,y+.7,z,2.14,.1,.74,'#d5c38c','tram');
+    for(let i=0;i<5;i++)box(x-.86+i*.43,y+.32,z+.37,.3,.31,.02,'#536566','glass');
+    box(x-.66,y-.05,z+.2,.28,.2,.1,'#3f4036','wheel');
+    box(x+.68,y-.05,z+.2,.28,.2,.1,'#3f4036','wheel');
+    sign(x,y+.03,z+.39,.59,.18,'MILANO','#dbc484','#423e2f');
+  }
+  function boat(x,y,z) {
+    quad([[x-1,y+.32,z+.45],[x+1,y+.32,z+.45],[x+.67,y,z+.45],[x-.7,y,z+.45]],'#e5ddc7','boat');
+    box(x,y+.31,z,.99,.37,.64,'#d1c7ae','boat');
+    box(x-.2,y+.68,z,.46,.24,.43,'#dad2bb','boat');
+    for(const dx of [-.25,0,.25])box(x+dx,y+.43,z+.34,.14,.11,.02,'#5b7776','glass');
+    box(x-.55,y+.32,z+.47,.25,.07,.02,'#a95d48','boat');
+  }
+  function colosseum(x,y,z) {
+    box(x,y,z,1.45,.94,.6,'#b7a17d','stone');
+    for(const dx of [-.48,-.16,.16,.48]) {
+      box(x+dx,y+.17,z+.32,.2,.56,.025,'#675c49','arch');
+      box(x+dx,y+.61,z+.34,.22,.13,.025,'#b7a17d','stone');
+    }
+    box(x,y+.91,z,1.51,.13,.65,'#a58f6c','stone');
   }
   function buildScene() {
     // Floor and ceiling tiles, every one a real world plane.
@@ -65,63 +109,57 @@
       const lit = Math.sin(x*17+z*11) > -.7;
       quad([[x-.35,4.035,z-1.45],[x+.35,4.035,z-1.45],[x+.35,4.035,z+1.45],[x-.35,4.035,z+1.45]],lit?'#e8e3b4':'#999669',lit?'light':'dead-light');
     }
-    // The unplanned, physically ridiculous mountain of ordinary furniture.
-    box(-.5,0,-6.1,2.5,1.27,1.8,'#977b50','wood');
-    box(1.65,0,-6.5,1.8,1.45,1.15,'#a28655','wood');
-    box(-2.8,0,-5.2,1.1,1.63,1.3,'#8d6f47','wood');
-    box(2.7,0,-4.5,1.2,.92,1.35,'#82744e','wood');
-    couch(-1.5,.9,-6.2,3.65,'#aaa087');
-    couch(-2.7,0,-3.75,2.05,'#beb392');
-    couch(3.4,0,-6.1,1.55,'#9ea596');
-    box(.95,1.48,-6.25,1.3,.95,1.12,'#5d5d4d','screen');
-    box(.95,1.65,-5.64,.96,.65,.025,'#202b2a','glass');
-    box(.95,1.7,-5.62,.67,.42,.025,'#31463d','monitor-glow');
-    box(2.05,1.47,-7.2,2.65,.48,1.09,'#98917b','upholstery');
-    box(-3.9,.05,-7.4,1.2,1.33,1.06,'#b0a68b','upholstery');
-    box(3.25,.74,-6.8,1.12,1.14,.96,'#987c51','wood');
-    box(-.2,1.79,-7.3,1.7,.56,.52,'#96784a','wood');
-    box(-4.1,0,-5.4,.93,.56,.62,'#776044','wood');
-    box(4.25,0,-4.55,.8,.9,.51,palette.luggage,'luggage');
-    chair(-4.35,-3.0,1);
-    chair(4.52,-7.1,1,'#735d3d');
-    chair(-.33,-3.66,1,'#8c7042');
-    chair(2.84,-8.55,1,'#76603e');
-    chair(-3.8,-8.65,0,'#907749');
-    // Furniture legs and slats peek out from odd positions.
-    box(-4.8,.1,-4.7,.14,1.55,.13,'#725a37','wood');
-    box(-5.0,.74,-4.7,.56,.08,.13,'#80663f','wood');
-    box(4.9,.07,-5.1,.13,1.9,.11,'#705e43','wood');
-    box(4.5,1.48,-7.5,.12,.75,.11,'#826a3e','wood');
-    box(-1.8,2.06,-7.53,.14,.55,.12,'#856d48','wood');
-    box(-1.78,2.47,-7.55,1.01,.1,.13,'#856d48','wood');
-    // Uneven piles of cartons, one faded rug and a remote door.
-    box(-6.1,0,-6.8,.9,.6,1.03,'#9b8763','cardboard');
-    box(5.4,0,-8.4,1.05,.79,.75,'#9f8963','cardboard');
-    box(-6.25,0,-7.92,.68,.46,.65,'#8d805f','cardboard');
-    box(1.15,.02,-3.56,1.15,.25,.82,'#9b8a64','cardboard');
+    // A heap of travel objects: luggage as structure, landmarks and scraps wedged in.
+    suitcase(-4.2,0,-6.3,2.05,1.16,1.15,'#80634c');
+    suitcase(-2.2,0,-7.0,2.35,1.32,1.32,'#716b55');
+    suitcase(.2,0,-6.7,2.3,1.12,1.4,'#806b4e');
+    suitcase(2.55,0,-6.7,2.15,1.28,1.1,'#5c6661');
+    suitcase(4.6,0,-7.6,1.75,1.03,1.03,'#796751');
+    suitcase(-5.45,0,-8.0,1.4,.8,.9,'#9a8563');
+    suitcase(5.55,0,-5.8,1.18,.81,.72,'#987852');
+    suitcase(-1.15,1.2,-7.6,1.64,.65,.76,'#a07555');
+    suitcase(2.85,1.26,-7.2,1.49,.62,.81,'#8b745c');
+    // London and Paris are tangled into the same precarious stack.
+    phoneBooth(-3.75,1.18,-6.55);
+    eiffel(-1.95,1.37,-7.13);
+    sign(-5.52,.85,-5.7,.8,.18,'OXFORD','#d0bf90','#594f3d');
+    // Warsaw's skyline rises behind a Milan tram and a Roman amphitheatre.
+    warsawTower(.45,1.16,-8.7);
+    tram(2.25,1.28,-6.0);
+    colosseum(-.65,1.12,-5.3);
+    // An Oxford book pile, a Civitavecchia ferry, a Naples pizza box.
+    for(const [i,color] of ['#504f43','#7f6652','#5b5c50','#94785e'].entries())
+      box(-5.23,.78+i*.16,-7.35,1.28,.15,.73,color,'book');
+    box(-5.23,1.44,-7.35,.12,.46,.13,'#a39b7e','spire');
+    box(-5.23,1.84,-7.35,.045,.3,.045,'#a39b7e','spire');
+    boat(4.25,1.04,-8.2);
+    box(3.55,.03,-4.85,1.45,.19,1.02,'#b68f63','cardboard');
+    sign(3.55,.06,-4.32,1.15,.1,'NAPOLI','#d8b78b','#8e4b3a');
+    box(4.75,.12,-5.0,.3,.32,.27,'#c9b994','cup');
+    box(4.75,.42,-5.0,.26,.035,.25,'#ede0bd','cup');
+    // Tickets, postcards and maps spill out around the base.
+    box(-4.9,.03,-4.45,.9,.035,.48,'#c5b891','paper');
+    sign(-4.9,.04,-4.2,.62,.16,'TUBE','#c5b891','#694b40');
+    box(-2.8,.025,-4.27,.85,.03,.48,'#c7b58f','paper');
+    sign(-2.8,.035,-4.01,.6,.14,'PARIS','#c7b58f','#5c5542');
+    box(.85,.02,-4.16,1.25,.035,.63,'#b4a884','map');
+    sign(.85,.04,-3.83,.8,.17,'ROMA','#b4a884','#665545');
+    box(5.23,.025,-4.48,.9,.03,.5,'#d1c19e','paper');
+    sign(5.23,.04,-4.2,.7,.15,'PORTO','#d1c19e','#5a6156');
+    // Two photographs sit in ordinary paper frames among the souvenirs.
+    box(-2.92,1.39,-5.68,.63,.54,.055,'#dfd3af','frame');
+    box(-2.92,1.49,-5.64,.48,.34,.012,'#687369','picture');
+    box(1.35,1.13,-5.62,.62,.54,.055,'#ded2ae','frame');
+    box(1.35,1.23,-5.58,.48,.34,.012,'#667469','picture');
     box(0,0,-27.8,2.2,3.25,.13,'#7e7750','door');
     box(0,0,-27.66,1.84,2.95,.08,'#4b503d','door');
     box(.66,1.43,-27.58,.09,.09,.09,'#dad4a2','knob');
-
-    // Tiny personal clues are mixed through the heap, never arranged by destination.
-    box(-3.16,1.67,-5.31,.11,.43,.11,'#bbb18a','souvenir'); // Eiffel silhouette
-    box(-3.16,1.97,-5.31,.23,.05,.13,'#bbb18a','souvenir');
-    box(1.26,1.27,-3.55,.5,.035,.29,'#e0cba0','paper');
-    box(4.12,1.65,-6.8,.42,.29,.22,'#944c3e','souvenir');
-    box(-4.12,1.36,-7.3,.46,.04,.32,'#d3c39c','paper');
-    box(2.92,.95,-4.32,.2,.24,.17,'#b6a476','souvenir');
-    box(-5.22,.6,-6.93,.56,.08,.38,'#c6b994','paper');
-    // Several dark frames wait for encrypted images in the completed project.
-    for(const [x,y,z] of [[-1.6,1.62,-5.43],[2.35,1.34,-6.0],[-4.06,.88,-3.05]]) {
-      box(x,y,z,.68,.54,.06,'#4a402e','frame');
-      box(x,y+.055,z+.04,.54,.39,.015,'#6b705e','picture');
-    }
     marks.push(
-      {x:-3.65,z:-4.6,kicker:'TRA GLI OGGETTI',title:'Una piccola torre',body:'Una mini Tour Eiffel è rimasta incastrata qui, come se qualcuno avesse svuotato una valigia in mezzo alla stanza.'},
-      {x:1.4,z:-2.7,kicker:'UN FOGLIO PIEGATO',title:'Una mappa consumata',body:'Londra, Varsavia, Milano. I nomi delle città sembrano annotati in ordine sparso, senza una logica.'},
-      {x:4.9,z:-5.2,kicker:'UNA SCATOLA',title:'Da qualche viaggio',body:'Dentro, oggetti di Roma, Napoli e Civitavecchia si mescolano a un biglietto di Oxford.'},
-      {x:-1.8,z:-3.95,kicker:'UNO SCHERMO',title:'Qualcosa affiora',body:'Una foto è rimasta qui.',photo:0},
-      {x:3.35,z:-3.6,kicker:'TRA I CUSCINI',title:'Una foto dimenticata',body:'Un ricordo nascosto nel mucchio.',photo:1},
+      {x:-3.8,z:-4.8,kicker:'TRA LE VALIGIE',title:'Londra e Parigi',body:'Una cabina rossa, una piccola Tour Eiffel e vecchi biglietti sono finiti nello stesso mucchio.'},
+      {x:.3,z:-3.5,kicker:'UN FOGLIO PIEGATO',title:'Città sovrapposte',body:'Varsavia, Milano e Roma. Gli oggetti dei viaggi si sostengono a vicenda in modo improbabile.'},
+      {x:4.8,z:-4.6,kicker:'AI PIEDI DEL MUCCHIO',title:'Dal porto a Napoli',body:'Un traghetto di Civitavecchia spunta dietro una scatola da pizza. Più in là, alcuni libri ricordano Oxford.'},
+      {x:-2.9,z:-4.7,kicker:'TRA I RICORDI',title:'Qualcosa affiora',body:'Una foto è rimasta qui.',photo:0},
+      {x:1.4,z:-4.5,kicker:'UNA CORNICE',title:'Una foto dimenticata',body:'Un ricordo nascosto nel mucchio.',photo:1},
       {x:0,z:-26.4,kicker:'UNA PORTA LONTANA',title:'Non ancora',body:'Oltre questa porta costruiremo il percorso dei cinque anni, la lettera e lo scatolino finale.'}
     );
   }
@@ -172,6 +210,15 @@
         ctx.strokeStyle='rgba(215,211,177,.35)';ctx.lineWidth=1;ctx.stroke();
       }
       if(item.face.kind==='monitor-glow') {ctx.shadowColor='#9bb9a2';ctx.shadowBlur=11;ctx.strokeStyle='rgba(194,218,184,.5)';ctx.stroke();ctx.shadowBlur=0;}
+      if(item.face.kind==='sign' && pts.length===4) {
+        const x=pts.reduce((sum,p)=>sum+p[0],0)/4, y=pts.reduce((sum,p)=>sum+p[1],0)/4;
+        const span=Math.max(...pts.map(p=>p[0]))-Math.min(...pts.map(p=>p[0]));
+        if(span>22) {
+          ctx.fillStyle=item.face.detail.ink;
+          ctx.font=`bold ${Math.min(17,Math.max(8,span/(item.face.detail.label.length*.74)))}px Arial`;
+          ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(item.face.detail.label,x,y,span*.88);
+        }
+      }
     }
     // Haze and lamp glare mute the far edges.
     const haze=ctx.createLinearGradient(0,0,0,height);
@@ -230,8 +277,8 @@
       const norm=Math.max(1,Math.hypot(f,side));f/=norm;side/=norm;
       const nx=state.x+(Math.sin(state.yaw)*f+Math.cos(state.yaw)*side)*speed;
       const nz=state.z+(-Math.cos(state.yaw)*f+Math.sin(state.yaw)*side)*speed;
-      const pile=Math.hypot(nx,nz+5.8);
-      if(nx>-17.15&&nx<17.15&&nz>-26.9&&nz<22.9&&pile>3.15) {state.x=nx;state.z=nz;}
+      const pile=Math.hypot(nx,nz+6.6);
+      if(nx>-17.15&&nx<17.15&&nz>-26.9&&nz<22.9&&pile>5.8) {state.x=nx;state.z=nz;}
       if(state.keys.has('ArrowLeft'))state.yaw-=dt*1.25;
       if(state.keys.has('ArrowRight'))state.yaw+=dt*1.25;
       $('#prompt').hidden=!currentMark();
