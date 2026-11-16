@@ -236,7 +236,7 @@
       if(state.keys.has('ArrowRight'))state.yaw+=dt*1.25;
       $('#prompt').hidden=!currentMark();
       $('#mobile-interact').hidden=!currentMark();
-      $('#position').textContent=state.z>-12?'ZONE 01 / 05':'ZONE 02 / 05';
+      $('#position').textContent=state.z>-12?'SALA 01 / PROTOTIPO':'FONDO SALA / PROTOTIPO';
       flash=Math.max(0,flash-dt*4);
       if(Math.random()<dt*.09) flash=1;
     }
