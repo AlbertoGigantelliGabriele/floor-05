@@ -3,7 +3,7 @@
   const canvas = document.querySelector('#world');
   const ctx = canvas.getContext('2d', { alpha: false });
   const $ = selector => document.querySelector(selector);
-  const state = { x: 0, z: 18, y: 1.64, yaw: 0, pitch: 0, active: false, modal: false,
+  const state = { x: 0, z: 11, y: 1.64, yaw: 0, pitch: 0, active: false, modal: false,
     keys: new Set(), dragging: false, lastX: 0, lastY: 0, audio: false, found: new Set() };
   const faces = [];
   const marks = [];
