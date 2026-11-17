@@ -1,6 +1,6 @@
 import * as THREE from './vendor/three.module.min.js';
-import {createTextures} from './materials.js?v=raw-1';
-import {buildArchitecture} from './architecture.js?v=raw-1';
+import {createTextures} from './materials.js?v=yellow-2';
+import {buildArchitecture} from './architecture.js?v=yellow-2';
 import {zoneAt,movePlayer,heights} from './layout.js';
 import {installTouchControls,createJump} from './controls.js?v=touch-1';
 
@@ -46,7 +46,7 @@ function startAudio(){
   const Context=window.AudioContext||window.webkitAudioContext;if(!Context)return;
   audio=new Context();
   humGain=audio.createGain();humGain.gain.value=.011;humGain.connect(audio.destination);
-  for(const hz of [50,100]){const osc=audio.createOscillator();osc.type='sine';osc.frequency.value=hz;osc.connect(humGain);osc.start();}
+  for(const hz of [50,100,100.7]){const osc=audio.createOscillator();osc.type='sine';osc.frequency.value=hz;osc.connect(humGain);osc.start();}
   const buffer=audio.createBuffer(1,audio.sampleRate*3,audio.sampleRate),data=buffer.getChannelData(0);
   let previous=0;for(let i=0;i<data.length;i++){previous=(previous+Math.random()*.03-.015)*.98;data[i]=previous;}
   const source=audio.createBufferSource();source.buffer=buffer;source.loop=true;
@@ -106,7 +106,7 @@ function animate(now){
   const zone=zoneAt(player.x,player.z),mood=moods[zone];
   fogTarget.set(mood.fog);uniforms.fogColor.value.lerp(fogTarget,1-Math.exp(-dt*2));
   uniforms.fogDensity.value+=(mood.density-uniforms.fogDensity.value)*Math.min(1,dt*2);
-  uniforms.time.value=time;scene.background=uniforms.fogColor.value;
+  uniforms.time.value=reduceMotion?0:time;scene.background=uniforms.fogColor.value;
   lampTimer+=dt;
   if(lampTimer>.25){
     lampTimer=0;
@@ -114,7 +114,10 @@ function animate(now){
     near.forEach((l,i)=>uniforms.lamps.value[i].set(l.x,l.y,l.z));
   }
   if(audio&&audio.state==='running'){
-    humGain.gain.setTargetAtTime(muted?0:zone==='pool'?.003:.011,audio.currentTime,.4);
+    const closest=uniforms.lamps.value[0];
+    const proximity=1/(1+Math.hypot(closest.x-player.x,closest.z-player.z)*.6);
+    const buzz=zone==='yellow'?.005+proximity*.009*(.92+.08*Math.sin(time*.64)):zone==='pool'?.002:.008;
+    humGain.gain.setTargetAtTime(muted?0:buzz,audio.currentTime,.4);
     noiseGain.gain.setTargetAtTime(muted?0:zone==='pool'?.14:.055,audio.currentTime,.4);
     filter.frequency.setTargetAtTime(zone==='pool'?1400:650,audio.currentTime,.5);
   }

@@ -1,13 +1,16 @@
 import * as THREE from './vendor/three.module.min.js';
 import {floor,WIDTH,DEPTH,rooms,corridors,pools,columns,isFloor,zoneAt,heights,lineOfSight} from './layout.js';
-import {vertexShader,fragmentShader,waterVertex,waterFragment} from './materials.js';
+import {vertexShader,fragmentShader,waterVertex,waterFragment} from './materials.js?v=yellow-2';
 
 export function buildArchitecture(scene,textures,shared){
   const lamps=[];
   const lightColors={yellow:[1,.95,.75],hospital:[.78,1,.87],pool:[.83,.96,1]};
   function lamp(x,z){
     if(!isFloor(x,z)||lamps.some(l=>Math.hypot(l.x-x,l.z-z)<2.65))return;
-    const zone=zoneAt(x,z);lamps.push({x,z,y:heights[zone]-.09,zone,color:lightColors[zone]});
+    const zone=zoneAt(x,z);
+    const variation=(Math.sin(x*12.9898+z*78.233)*43758.5453)%1;
+    const power=zone==='yellow'?.38+.85*Math.abs(variation):1;
+    lamps.push({x,z,y:heights[zone]-.09,zone,power,color:lightColors[zone]});
   }
   rooms.forEach(r=>{
     const nx=Math.max(1,Math.floor(r.w/4)),nz=Math.max(1,Math.floor(r.d/4));
@@ -28,14 +31,14 @@ export function buildArchitecture(scene,textures,shared){
     if(!candidates.has(bk)){
       const list=[];for(let z=bz-1;z<=bz+1;z++)for(let x=bx-1;x<=bx+1;x++)list.push(...(buckets.get(x+','+z)||[]));candidates.set(bk,list);
     }
-    const ambient=zone==='hospital'?.18:zone==='pool'?.29:.25;
+    const ambient=zone==='hospital'?.18:zone==='pool'?.29:.19;
     const color=[ambient,ambient,ambient*.94];
     for(const l of candidates.get(bk)){
       const dx=l.x-px,dy=l.y-p[1],dz=l.z-pz,d2=dx*dx+dy*dy+dz*dz;
       if(d2>95)continue;
       const dot=(dx*n[0]+dy*n[1]+dz*n[2])/Math.sqrt(Math.max(.01,d2));
       if(dot<-.1||!lineOfSight(px,pz,l.x,l.z))continue;
-      const power=(zone==='hospital'?.75:1.02)*(.16+.84*Math.max(0,dot))/(1+d2*.24);
+      const power=l.power*(zone==='hospital'?.75:1.02)*(.16+.84*Math.max(0,dot))/(1+d2*.24);
       for(let i=0;i<3;i++)color[i]+=l.color[i]*power;
     }
     // Contact shade along floor/wall and ceiling junctions.
@@ -48,10 +51,10 @@ export function buildArchitecture(scene,textures,shared){
     const result=color.map(v=>Math.min(1.9,v*shade));lightCache.set(key,result);return result;
   }
   const groups={};
-  function quad(material,points,normal,uv,zone='yellow'){
+  function quad(material,points,normal,uv,zone='yellow',tint=[1,1,1]){
     if(!groups[material])groups[material]={p:[],n:[],uv:[],light:[]};
     const g=groups[material],center=[0,0,0];points.forEach(p=>p.forEach((v,k)=>center[k]+=v/4));
-    const colors=points.map(p=>material==='light'?[1,1,1]:bakedLight(p,normal,zone,center));
+    const colors=points.map(p=>material==='light'?tint:bakedLight(p,normal,zone,center));
     for(const i of [0,1,2,0,2,3]){g.p.push(...points[i]);g.n.push(...normal);g.uv.push(...uv[i]);g.light.push(...colors[i]);}
   }
   function horizontal(material,x,z,w,d,y,up,zone){
@@ -63,7 +66,7 @@ export function buildArchitecture(scene,textures,shared){
   }
   function wall(material,ax,az,bx,bz,low,high,zone,offset=0){
     const len=Math.hypot(bx-ax,bz-az),n=[-(bz-az)/len,0,(bx-ax)/len];
-    const scale=material==='yellowWall'?1.3:material==='hospitalWall'?heights.hospital:2.4;
+    const scale=material==='yellowWall'?1.7:material==='hospitalWall'?heights.hospital:2.4;
     const u0=Math.abs(bx-ax)>.01?ax:az,u1=Math.abs(bx-ax)>.01?bx:bz;
     const count=Math.ceil((high-low)/.6);
     for(let i=0;i<count;i++){
@@ -127,7 +130,7 @@ export function buildArchitecture(scene,textures,shared){
   for(const l of lamps){
     const w=l.zone==='hospital'?.6:.56,d=l.zone==='hospital'?.6:1.18;
     horizontal('trim'+l.zone[0].toUpperCase()+l.zone.slice(1),l.x-w/2-.035,l.z-d/2-.035,w+.07,d+.07,l.y+.055,false,l.zone);
-    quad('light',[[l.x-w/2,l.y+.04,l.z-d/2],[l.x+w/2,l.y+.04,l.z-d/2],[l.x+w/2,l.y+.04,l.z+d/2],[l.x-w/2,l.y+.04,l.z+d/2]],[0,-1,0],[[0,0],[1,0],[1,1],[0,1]],l.zone);
+    quad('light',[[l.x-w/2,l.y+.04,l.z-d/2],[l.x+w/2,l.y+.04,l.z-d/2],[l.x+w/2,l.y+.04,l.z+d/2],[l.x-w/2,l.y+.04,l.z+d/2]],[0,-1,0],[[0,0],[1,0],[1,1],[0,1]],l.zone,l.zone==='yellow'?l.color.map(v=>v*l.power):[1,1,1]);
   }
   let triangles=0;
   for(const [name,g] of Object.entries(groups)){
@@ -137,7 +140,7 @@ export function buildArchitecture(scene,textures,shared){
     geo.setAttribute('uv',new THREE.Float32BufferAttribute(g.uv,2));
     geo.setAttribute('light',new THREE.Float32BufferAttribute(g.light,3));geo.computeBoundingSphere();
     const material=new THREE.ShaderMaterial({
-      vertexShader,fragmentShader,uniforms:{...shared,map:{value:textures[name]},gloss:{value:name==='hospitalFloor'?.16:name==='poolFloor'?.21:0},emission:{value:name==='light'?2.6:0}}
+      vertexShader,fragmentShader,uniforms:{...shared,map:{value:textures[name]},atmosphere:{value:name.startsWith('yellow')?1:0},gloss:{value:name==='hospitalFloor'?.16:name==='poolFloor'?.21:0},emission:{value:name==='light'?2.6:0}}
     });
     const mesh=new THREE.Mesh(geo,material);scene.add(mesh);triangles+=g.p.length/9;
   }

@@ -30,23 +30,36 @@ function texture(paint,anisotropy){
 export function createTextures(anisotropy){
   return {
     yellowWall:texture(c=>{
-      c.fillStyle='#b6ad75';c.fillRect(0,0,512,512);
-      // Woven, vertically repeating, slightly odd 1970s wallpaper.
-      c.lineWidth=2;c.strokeStyle='rgba(101,94,53,.27)';
-      for(let x=-32;x<550;x+=64){
-        c.beginPath();c.moveTo(x,0);c.lineTo(x,512);c.stroke();
-        for(let y=-64;y<576;y+=128){
-          c.beginPath();c.moveTo(x+8,y);c.lineTo(x+28,y+35);c.lineTo(x+8,y+64);c.lineTo(x+28,y+99);c.lineTo(x+8,y+128);c.stroke();
-          c.beginPath();c.moveTo(x+44,y);c.lineTo(x+24,y+35);c.lineTo(x+44,y+64);c.lineTo(x+24,y+99);c.lineTo(x+44,y+128);c.stroke();
-          c.strokeRect(x+20,y+27,12,16);c.strokeRect(x+20,y+91,12,16);
+      c.fillStyle='#c5bd7e';c.fillRect(0,0,512,512);
+      // Faded woven chevrons and double vertical stripes, based on the supplied references.
+      for(let x=0;x<512;x+=128){
+        c.fillStyle='rgba(127,119,53,.22)';c.fillRect(x+5,0,18,512);
+        c.fillStyle='rgba(233,222,151,.48)';c.fillRect(x+7,0,2,512);c.fillRect(x+20,0,2,512);
+        c.fillStyle='rgba(117,109,45,.24)';c.fillRect(x+12,0,4,512);
+        for(let y=-256;y<768;y+=256){
+          for(const offset of [0,65,130]){
+            c.fillStyle=offset===65?'rgba(143,132,62,.20)':'rgba(153,141,65,.28)';
+            c.beginPath();
+            // Jagged printed edges, rather than perfectly geometric arrows.
+            for(let i=0;i<=80;i+=2){const yy=y+offset+Math.abs(i-40)*1.25+(random()-.5)*9;c.lineTo(x+34+i,yy);}
+            for(let i=80;i>=0;i-=2){const yy=y+offset+Math.abs(i-40)*1.25+23+(random()-.5)*8;c.lineTo(x+34+i,yy);}
+            c.closePath();c.fill();
+          }
+          c.fillStyle='rgba(231,221,148,.42)';
+          c.beginPath();c.moveTo(x+14,y+70);c.lineTo(x+19,y+85);c.lineTo(x+14,y+100);c.lineTo(x+9,y+85);c.closePath();c.fill();
         }
       }
-      stains(c,.11);noise(c,9);
+      stains(c,.07);noise(c,13);
+      c.fillStyle='rgba(244,229,169,.07)';for(let y=0;y<512;y+=2)c.fillRect(0,y,512,.5);
     },anisotropy),
     yellowFloor:texture(c=>{
-      c.fillStyle='#9a936e';c.fillRect(0,0,512,512);noise(c,35);
-      for(let i=0;i<24000;i++){const x=random()*512,y=random()*512;c.fillStyle=random()>.5?'rgba(54,52,29,.13)':'rgba(207,200,151,.18)';c.fillRect(x,y,1,2+random()*2);}
-      stains(c,.06);
+      c.fillStyle='#a49a73';c.fillRect(0,0,512,512);noise(c,27);
+      for(let i=0;i<42000;i++){
+        const x=random()*512,y=random()*512;
+        c.strokeStyle=random()>.5?'rgba(66,57,32,.22)':'rgba(222,209,160,.30)';
+        c.lineWidth=.65;c.beginPath();c.moveTo(x,y);c.lineTo(x+random()*2-1,y+1+random()*2);c.stroke();
+      }
+      stains(c,.045);
     },anisotropy),
     hospitalWall:texture(c=>{
       c.fillStyle='#b3c2b4';c.fillRect(0,0,512,260);
@@ -97,11 +110,19 @@ export const fragmentShader=`
   uniform float gloss;
   uniform float emission;
   uniform float time;
+  uniform float atmosphere;
   uniform vec3 lamps[8];
   varying vec2 vUv;varying vec3 vLight;varying vec3 vWorld;varying vec3 vNormal;
   void main(){
     vec3 albedo=texture2D(map,vUv).rgb;
     vec3 color=albedo*vLight;
+    if(atmosphere>.5){
+      float wear=.5+.5*sin(vWorld.x*.63+sin(vWorld.z*.41))*sin(vWorld.z*.74+vWorld.x*.16);
+      color*=.91+.09*wear;
+      // Slow, shallow light drift: no abrupt flashes, disabled for reduced motion.
+      color*=.978+.022*sin(time*.64+vWorld.x*.21+vWorld.z*.18);
+      if(abs(vNormal.y)<.5)color*=.86+.14*smoothstep(.0,.65,vWorld.y);
+    }
     vec3 view=normalize(cameraPosition-vWorld);
     if(gloss>0.0 && vNormal.y>.5){
       vec3 ray=reflect(-view,normalize(vNormal));
@@ -115,7 +136,7 @@ export const fragmentShader=`
         }
       }
     }
-    if(emission>.0)color=albedo*emission*(.985+.015*sin(time*.7+vWorld.x));
+    if(emission>.0)color=albedo*vLight*emission*(.985+.015*sin(time*.7+vWorld.x));
     float distanceToEye=length(cameraPosition-vWorld);
     float fog=1.-exp(-fogDensity*fogDensity*distanceToEye*distanceToEye);
     color=mix(color,fogColor,min(.84,fog));
