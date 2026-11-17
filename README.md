@@ -25,3 +25,5 @@ Le immagini sotto sono render locali della stessa geometria, degli stessi materi
 ![Piscine](docs/previews/pool.jpg)
 
 [Guida](GUIDA.md)
+
+Prima di pubblicare modifiche a materiali, architettura o motore, eseguire `node build-release.mjs` e includere i file generati indicati in `release.json`, insieme a `index.html`. I nomi dei moduli contengono l'hash del contenuto, così ogni aggiornamento carica risorse nuove senza mescolare versioni conservate in cache. Conservare i moduli delle release precedenti per le schede già aperte.
