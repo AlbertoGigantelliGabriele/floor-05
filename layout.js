@@ -1,4 +1,5 @@
 // Approved continuous floor plan. Coordinates and clearances are in metres.
+import {souvenirHeaps} from './souvenir-layout.js';
 export const WIDTH=64, DEPTH=69;
 export const rooms=[
   {id:'entry',x:28,z:61,w:8,d:6},{id:'yellow',x:26,z:46,w:12,d:8},
@@ -44,6 +45,7 @@ export function zoneAt(x,z){
 }
 export const heights={yellow:2.85,hospital:3.05,pool:4.25};
 export function collides(x,z,r=.23){
+  for(const heap of souvenirHeaps)if(Math.hypot(x-heap.x,z-heap.z)<heap.r+r)return true;
   for(let j=Math.floor(z-r);j<=Math.floor(z+r);j++)for(let i=Math.floor(x-r);i<=Math.floor(x+r);i++){
     if(floor[j]?.[i])continue;
     const dx=x-Math.max(i,Math.min(x,i+1)),dz=z-Math.max(j,Math.min(z,j+1));

@@ -2,7 +2,7 @@
 import {readFileSync,writeFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 const root=new URL('./',import.meta.url),files={};
-for(const source of ['materials.js','architecture.js','footsteps.js','engine.js']){
+for(const source of ['souvenir-layout.js','layout.js','materials.js','souvenirs.js','architecture.js','footsteps.js','engine.js']){
   let content=readFileSync(new URL(source,root),'utf8');
   for(const [dependency,built] of Object.entries(files)){
     const pattern=new RegExp("\\./"+dependency.replaceAll('.','\\.')+"(?:\\?[^'\"]*)?",'g');

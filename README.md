@@ -6,7 +6,7 @@ Backrooms esplorabili in prima persona: 26 ambienti collegati su un unico piano,
 
 Su iPhone/iPad e dispositivi touch: tieni premuto **Cammina** o **Corri**, trascina un altro dito nella scena per guardarti intorno e tocca **Salta**. Su computer il salto usa la barra spaziatrice; i pulsanti restano nascosti sui dispositivi senza touch.
 
-Questa versione si concentra sull'architettura. Nessuna porta, schermata iniziale, foto, souvenir o login. Richiede WebGL 2. Gli strumenti delle foto sono conservati per il futuro e non sono caricati dalla scena.
+La scena contiene cinque cumuli di souvenir stilizzati, per un totale di 80 oggetti: Tour Eiffel, autobus londinesi, rotonde di Oxford, torri di Varsavia, piccoli Duomi, fari e navi per Civitavecchia, Colossei e cornicelli napoletani. I modellini sono inclinati, sovrapposti e riuniti in una sola mesh per contenere le chiamate di rendering. I cumuli hanno collisioni e lasciano percorribili tutte le stanze. Nessuna porta, schermata iniziale, foto o login. Richiede WebGL 2. Gli strumenti delle foto sono conservati per il futuro e non sono caricati dalla scena.
 
 Verifica dei controlli: `node verify-controls.mjs`. Copre gesti simultanei, interruzioni e salto. La prova su iPhone/iPad fisici resta da completare.
 

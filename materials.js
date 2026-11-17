@@ -29,6 +29,7 @@ function texture(paint,anisotropy){
 }
 export function createTextures(anisotropy){
   return {
+    souvenir:texture(c=>{c.fillStyle='#ffffff';c.fillRect(0,0,512,512);},anisotropy),
     yellowWall:texture(c=>{
       c.fillStyle='#c5bd7e';c.fillRect(0,0,512,512);
       // Faded woven chevrons and double vertical stripes, based on the supplied references.

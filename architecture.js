@@ -1,4 +1,5 @@
 import * as THREE from './vendor/three.module.min.js';
+import {buildSouvenirs} from './souvenirs.js';
 import {floor,WIDTH,DEPTH,rooms,corridors,pools,columns,isFloor,zoneAt,heights,lineOfSight} from './layout.js';
 import {vertexShader,fragmentShader,waterVertex,waterFragment} from './materials.js?v=seam-fix-5';
 
@@ -132,6 +133,7 @@ export function buildArchitecture(scene,textures,shared){
     quad('light',[[l.x-w/2,l.y+.04,l.z-d/2],[l.x+w/2,l.y+.04,l.z-d/2],[l.x+w/2,l.y+.04,l.z+d/2],[l.x-w/2,l.y+.04,l.z+d/2]],[0,-1,0],[[0,0],[1,0],[1,1],[0,1]],l.zone,l.zone==='yellow'?l.color.map(v=>v*l.power):[1,1,1]);
   }
   let triangles=0;
+  groups.souvenir=buildSouvenirs(bakedLight);
   for(const [name,g] of Object.entries(groups)){
     const geo=new THREE.BufferGeometry();
     geo.setAttribute('position',new THREE.Float32BufferAttribute(g.p,3));
@@ -139,7 +141,7 @@ export function buildArchitecture(scene,textures,shared){
     geo.setAttribute('uv',new THREE.Float32BufferAttribute(g.uv,2));
     geo.setAttribute('light',new THREE.Float32BufferAttribute(g.light,3));geo.computeBoundingSphere();
     const material=new THREE.ShaderMaterial({
-      vertexShader,fragmentShader,uniforms:{...shared,map:{value:textures[name]},atmosphere:{value:name.startsWith('yellow')?1:name.startsWith('hospital')?2:name==='poolWall'?3:0},gloss:{value:name==='hospitalFloor'?.23:0},emission:{value:name==='light'?2.6:0}}
+      vertexShader,fragmentShader:name==='souvenir'?fragmentShader.replace('texture2D(map,vUv).rgb','vec3(1.)'):fragmentShader,uniforms:{...shared,map:{value:textures[name]},atmosphere:{value:name.startsWith('yellow')?1:name.startsWith('hospital')?2:name==='poolWall'?3:0},gloss:{value:name==='hospitalFloor'?.23:0},emission:{value:name==='light'?2.6:0}}
     });
     const mesh=new THREE.Mesh(geo,material);scene.add(mesh);triangles+=g.p.length/9;
   }
