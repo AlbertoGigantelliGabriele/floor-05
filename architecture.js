@@ -1,6 +1,6 @@
 import * as THREE from './vendor/three.module.min.js';
 import {floor,WIDTH,DEPTH,rooms,corridors,pools,columns,isFloor,zoneAt,heights,lineOfSight} from './layout.js';
-import {vertexShader,fragmentShader,waterVertex,waterFragment} from './materials.js?v=zones-3';
+import {vertexShader,fragmentShader,waterVertex,waterFragment} from './materials.js?v=pool-fix-4';
 
 export function buildArchitecture(scene,textures,shared){
   const lamps=[];
@@ -59,14 +59,14 @@ export function buildArchitecture(scene,textures,shared){
   }
   function horizontal(material,x,z,w,d,y,up,zone){
     let pts=[[x,y,z+d],[x+w,y,z+d],[x+w,y,z],[x,y,z]];
-    const scale=material==='ceiling'?1.2:material==='yellowFloor'?2:2.4;
+    const scale=material==='ceiling'?1.2:material==='yellowFloor'?2:material==='poolFloor'?1.6:2.4;
     let uv=pts.map(p=>[p[0]/scale,p[2]/scale]);
     if(!up){pts=pts.reverse();uv=uv.reverse();}
     quad(material,pts,[0,up?1:-1,0],uv,zone);
   }
   function wall(material,ax,az,bx,bz,low,high,zone,offset=0){
     const len=Math.hypot(bx-ax,bz-az),n=[-(bz-az)/len,0,(bx-ax)/len];
-    const scale=material==='yellowWall'?1.7:material==='hospitalWall'?heights.hospital:2.4;
+    const scale=material==='yellowWall'?1.7:material==='hospitalWall'?heights.hospital:material==='poolWall'?1.2:2.4;
     const u0=Math.abs(bx-ax)>.01?ax:az,u1=Math.abs(bx-ax)>.01?bx:bz;
     const count=Math.ceil((high-low)/.6);
     for(let i=0;i<count;i++){
@@ -78,8 +78,7 @@ export function buildArchitecture(scene,textures,shared){
   function wallWithTrim(ax,az,bx,bz,h,zone){
     wall(zone+'Wall',ax,az,bx,bz,0,h,zone);
     const trim='trim'+zone[0].toUpperCase()+zone.slice(1);
-    wall(trim,ax,az,bx,bz,.005,.105,zone,.007);
-    if(zone==='pool')wall('trimPool',ax,az,bx,bz,1.12,1.24,zone,.004);
+    if(zone!=='pool')wall(trim,ax,az,bx,bz,.005,.105,zone,.007);
   }
   function floorPieces(x,z){
     let parts=[[x,z,1,1]];
@@ -140,12 +139,17 @@ export function buildArchitecture(scene,textures,shared){
     geo.setAttribute('uv',new THREE.Float32BufferAttribute(g.uv,2));
     geo.setAttribute('light',new THREE.Float32BufferAttribute(g.light,3));geo.computeBoundingSphere();
     const material=new THREE.ShaderMaterial({
-      vertexShader,fragmentShader,uniforms:{...shared,map:{value:textures[name]},atmosphere:{value:name.startsWith('yellow')?1:name.startsWith('hospital')?2:name.startsWith('pool')?3:0},gloss:{value:name==='hospitalFloor'?.23:name==='poolFloor'?.30:0},emission:{value:name==='light'?2.6:0}}
+      vertexShader,fragmentShader,uniforms:{...shared,map:{value:textures[name]},atmosphere:{value:name.startsWith('yellow')?1:name.startsWith('hospital')?2:name==='poolWall'?3:0},gloss:{value:name==='hospitalFloor'?.23:0},emission:{value:name==='light'?2.6:0}}
     });
     const mesh=new THREE.Mesh(geo,material);scene.add(mesh);triangles+=g.p.length/9;
   }
-  const waterMaterial=new THREE.ShaderMaterial({vertexShader:waterVertex,fragmentShader:waterFragment,uniforms:shared});
   for(const p of pools){
+    // Reflections use only lamps visible from this basin, not lamps behind walls.
+    const cx=p.x+p.w/2,cz=p.z+p.d/2;
+    const visible=lamps.filter(l=>l.zone==='pool'&&lineOfSight(cx,cz,l.x,l.z))
+      .sort((a,b)=>Math.hypot(a.x-cx,a.z-cz)-Math.hypot(b.x-cx,b.z-cz)).slice(0,8);
+    const localLamps=Array.from({length:8},(_,i)=>visible[i]?new THREE.Vector3(visible[i].x,visible[i].y,visible[i].z):new THREE.Vector3(1000,1000,1000));
+    const waterMaterial=new THREE.ShaderMaterial({vertexShader:waterVertex,fragmentShader:waterFragment,uniforms:{...shared,lamps:{value:localLamps}}});
     const geo=new THREE.PlaneGeometry(p.w,p.d);geo.rotateX(-Math.PI/2);
     const mesh=new THREE.Mesh(geo,waterMaterial);mesh.position.set(p.x+p.w/2,-.22,p.z+p.d/2);scene.add(mesh);
   }

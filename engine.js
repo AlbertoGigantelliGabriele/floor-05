@@ -1,6 +1,6 @@
 import * as THREE from './vendor/three.module.min.js';
-import {createTextures} from './materials.js?v=zones-3';
-import {buildArchitecture} from './architecture.js?v=zones-3';
+import {createTextures} from './materials.js?v=pool-fix-4';
+import {buildArchitecture} from './architecture.js?v=pool-fix-4';
 import {zoneAt,movePlayer,heights} from './layout.js';
 import {installTouchControls,createJump} from './controls.js?v=touch-1';
 

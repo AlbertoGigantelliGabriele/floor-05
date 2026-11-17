@@ -130,12 +130,11 @@ export const fragmentShader=`
       color*=.91+.09*scuff;
       if(abs(vNormal.y)<.5)color*=.83+.17*smoothstep(0.,.55,vWorld.y);
     }
-    if(atmosphere>2.5){
-      // Soft reflected ripples along the lower tiled walls.
-      float wave=sin(vWorld.x*4.7+vWorld.z*3.8+sin(vWorld.y*5.+time*.5));
-      float crossWave=sin(vWorld.x*2.6-vWorld.z*5.1+time*.42+vWorld.y*3.);
-      float caustic=pow(max(0.,1.-abs(wave+crossWave)*.6),9.);
-      color+=vec3(.035,.065,.07)*caustic*exp(-max(0.,vWorld.y)*.9);
+    if(atmosphere>2.5 && abs(vNormal.y)<.5 && vWorld.y>=0.){
+      // The ceramic band is part of the wall, not a floating overlay plane.
+      float band=step(1.20,vWorld.y)*(1.-step(1.35,vWorld.y));
+      float base=1.-smoothstep(.09,.105,vWorld.y);
+      color*=mix(vec3(1.),vec3(.32,.52,.53),max(band,base));
     }
     vec3 view=normalize(cameraPosition-vWorld);
     if(gloss>0.0 && vNormal.y>.5){
@@ -170,13 +169,14 @@ export const waterFragment=`
   void main(){
     vec2 p=vWorld.xz;
     float a=sin(p.x*3.4+p.y*2.3+time*.65), b=cos(p.x*2.1-p.y*3.8+time*.48);
-    vec3 n=normalize(vec3(a*.027,1.,b*.027));
+    vec3 n=normalize(vec3(a*.012,1.,b*.012));
     vec3 v=normalize(cameraPosition-vWorld);
     float fresnel=pow(1.-max(dot(n,v),0.),3.);
-    vec2 uv=p*4.2+vec2(a,b)*.065;
+    // Same 15 cm mosaic as the basin geometry; only a subtle refraction offset.
+    vec2 uv=p/.15+vec2(a,b)*.035;
     vec2 tile=abs(fract(uv)-.5);
     float grout=smoothstep(.47,.49,max(tile.x,tile.y));
-    float caustic=pow(max(0.,1.-abs(sin(p.x*8.+sin(p.y*5.+time*.3))+cos(p.y*7.-time*.36))*.5),12.)*.085;
+    float caustic=pow(max(0.,1.-abs(sin(p.x*8.+sin(p.y*5.+time*.3))+cos(p.y*7.-time*.36))*.5),12.)*.035;
     vec3 color=mix(vec3(.085,.28,.32),vec3(.22,.40,.43),fresnel);
     color*=1.-grout*.22;color+=caustic;
     vec3 ray=reflect(-v,n);
@@ -184,7 +184,7 @@ export const waterFragment=`
       float t=(lamps[i].y-vWorld.y)/ray.y;
       vec2 d=p+ray.xz*t-lamps[i].xz;
       float patch=exp(-pow(d.x*2.3,4.)-pow(d.y*1.6,4.));
-      color+=vec3(.65,.79,.72)*patch*(.25+.65*fresnel);
+      color+=vec3(.65,.79,.72)*patch*(.15+.35*fresnel);
     }
     float dist=length(cameraPosition-vWorld);
     color=mix(color,fogColor,min(.7,1.-exp(-fogDensity*fogDensity*dist*dist)));
