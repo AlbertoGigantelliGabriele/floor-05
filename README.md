@@ -1,7 +1,19 @@
 # FLOOR 05
 
-Una backroom esplorabile in prima persona. Prima versione: stanza gialla, catasta di valigie e ricordi di viaggio, oggetti da scoprire e supporto per foto cifrate.
+Backrooms esplorabili in prima persona: 26 ambienti collegati su un unico piano, con corridoi, deviazioni e percorsi di ritorno. Tre stili: carta da parati gialla e moquette; ospedale verde a due tonalità; piscine piastrellate con acqua animata.
 
-L'[anteprima giocabile](https://albertogigantelligabriele.github.io/floor-05/) è pubblicata su GitHub Pages senza foto. Quando verrà aggiunto l'archivio cifrato con una frase scelta dalla proprietaria, apparirà la schermata di accesso.
+**[Apri il sito](https://albertogigantelligabriele.github.io/floor-05/)**. Clicca nella scena per catturare il mouse, usa WASD per camminare, Maiusc per accelerare ed Esc per liberare il puntatore. M attiva/disattiva il suono.
 
-[Guida all'uso e alla pubblicazione](GUIDA.md) · [Strumento per preparare le foto](studio.html)
+Questa versione si concentra sull'architettura. Nessuna porta, HUD, schermata iniziale, pulsante, foto, souvenir o login. Pensata per tastiera e mouse; richiede WebGL 2. Gli strumenti delle foto sono conservati per il futuro e non sono caricati dalla scena.
+
+Il rendering usa Three.js r170 incluso nel repository, texture procedurali, illuminazione precalcolata e riflessi semplificati. Nessuna dipendenza da CDN durante l'uso. Licenza Three.js in `vendor/THREE-LICENSE.txt`.
+
+Verifica della pianta: `node verify-layout.mjs`. Il test controlla la raggiungibilità con il raggio del giocatore, le tre zone, la posizione iniziale e le collisioni con pareti e vasche.
+
+Le immagini sotto sono render locali della stessa geometria, degli stessi materiali e shader. Non sono screenshot di una sessione nel browser. Il browser remoto di prova ha WebGL disabilitato: la verifica interattiva grafica resta da completare su un browser compatibile.
+
+![Zona gialla](docs/previews/yellow.jpg)
+![Ospedale](docs/previews/hospital.jpg)
+![Piscine](docs/previews/pool.jpg)
+
+[Guida](GUIDA.md)
