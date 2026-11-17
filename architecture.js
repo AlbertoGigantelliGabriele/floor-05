@@ -1,6 +1,6 @@
 import * as THREE from './vendor/three.module.min.js';
 import {floor,WIDTH,DEPTH,rooms,corridors,pools,columns,isFloor,zoneAt,heights,lineOfSight} from './layout.js';
-import {vertexShader,fragmentShader,waterVertex,waterFragment} from './materials.js?v=pool-fix-4';
+import {vertexShader,fragmentShader,waterVertex,waterFragment} from './materials.js?v=seam-fix-5';
 
 export function buildArchitecture(scene,textures,shared){
   const lamps=[];

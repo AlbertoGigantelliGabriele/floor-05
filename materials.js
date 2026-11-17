@@ -37,19 +37,21 @@ export function createTextures(anisotropy){
         c.fillStyle='rgba(233,222,151,.48)';c.fillRect(x+7,0,2,512);c.fillRect(x+20,0,2,512);
         c.fillStyle='rgba(117,109,45,.24)';c.fillRect(x+12,0,4,512);
         for(let y=-256;y<768;y+=256){
-          for(const offset of [0,65,130]){
-            c.fillStyle=offset===65?'rgba(143,132,62,.20)':'rgba(153,141,65,.28)';
+          for(const offset of [0,256/3,512/3]){
+            c.fillStyle='rgba(153,141,65,.25)';
             c.beginPath();
-            // Jagged printed edges, rather than perfectly geometric arrows.
-            for(let i=0;i<=80;i+=2){const yy=y+offset+Math.abs(i-40)*1.25+(random()-.5)*9;c.lineTo(x+34+i,yy);}
-            for(let i=80;i>=0;i-=2){const yy=y+offset+Math.abs(i-40)*1.25+23+(random()-.5)*8;c.lineTo(x+34+i,yy);}
+            // Periodic motif: identical edges at each repeat, with no empty horizontal belt.
+            const stagger=(x/128)%2*128;
+            for(let i=0;i<=80;i+=2){const yy=y+offset+stagger+Math.abs(i-40)*1.25+Math.sin(i*7.3+x)*3.5;c.lineTo(x+34+i,yy);}
+            for(let i=80;i>=0;i-=2){const yy=y+offset+stagger+Math.abs(i-40)*1.25+23+Math.sin(i*5.7+x)*3;c.lineTo(x+34+i,yy);}
             c.closePath();c.fill();
           }
           c.fillStyle='rgba(231,221,148,.42)';
           c.beginPath();c.moveTo(x+14,y+70);c.lineTo(x+19,y+85);c.lineTo(x+14,y+100);c.lineTo(x+9,y+85);c.closePath();c.fill();
         }
       }
-      stains(c,.07);noise(c,13);
+      // Large-scale ageing is applied in world space by the shader, never cut at tile edges.
+      noise(c,13);
       c.fillStyle='rgba(244,229,169,.07)';for(let y=0;y<512;y+=2)c.fillRect(0,y,512,.5);
     },anisotropy),
     yellowFloor:texture(c=>{
@@ -57,9 +59,13 @@ export function createTextures(anisotropy){
       for(let i=0;i<42000;i++){
         const x=random()*512,y=random()*512;
         c.strokeStyle=random()>.5?'rgba(66,57,32,.22)':'rgba(222,209,160,.30)';
-        c.lineWidth=.65;c.beginPath();c.moveTo(x,y);c.lineTo(x+random()*2-1,y+1+random()*2);c.stroke();
+        const dx=random()*2-1,dy=1+random()*2;
+        c.lineWidth=.65;
+        for(const ox of [0,...(x<2?[512]:x>510?[-512]:[])])for(const oy of [0,...(y>508?[-512]:[])]){
+          c.beginPath();c.moveTo(x+ox,y+oy);c.lineTo(x+ox+dx,y+oy+dy);c.stroke();
+        }
       }
-      stains(c,.045);
+      // No baked stain patches: they revealed the repeating two-metre texture squares.
     },anisotropy),
     hospitalWall:texture(c=>{
       c.fillStyle='#b5beb0';c.fillRect(0,0,512,260);
