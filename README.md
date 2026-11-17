@@ -6,7 +6,9 @@ Backrooms esplorabili in prima persona: 26 ambienti collegati su un unico piano,
 
 Su iPhone/iPad e dispositivi touch: tieni premuto **Cammina** o **Corri**, trascina un altro dito nella scena per guardarti intorno e tocca **Salta**. Su computer il salto usa la barra spaziatrice; i pulsanti restano nascosti sui dispositivi senza touch.
 
-La scena contiene cinque cumuli di souvenir stilizzati, per un totale di 80 oggetti: Tour Eiffel, autobus londinesi, rotonde di Oxford, torri di Varsavia, piccoli Duomi, fari e navi per Civitavecchia, Colossei e cornicelli napoletani. I modellini sono inclinati, sovrapposti e riuniti in una sola mesh per contenere le chiamate di rendering. I cumuli hanno collisioni e lasciano percorribili tutte le stanze. Nessuna porta, schermata iniziale, foto o login. Richiede WebGL 2. Gli strumenti delle foto sono conservati per il futuro e non sono caricati dalla scena.
+La scena contiene otto gruppi di souvenir, per un totale di 74 oggetti, ciascuno nella stanza della città prevista dalla mappa: Parigi, Londra, Oxford, Varsavia, Milano, Civitavecchia, Roma e Napoli. I modellini hanno tralicci, archi, nervature, finestre e bordi smussati. Le superfici di ogni oggetto vengono analizzate prima della pubblicazione per calcolare appoggi conservativi senza compenetrazioni; non è una simulazione fisica in tempo reale. Le posizioni vengono salvate in `souvenir-placements.js`, evitando il costo del calcolo sul telefono. La mesh resta unica. I cumuli hanno collisioni e lasciano percorribili tutte le stanze. Nessuna porta, schermata iniziale, foto o login. Richiede WebGL 2. Gli strumenti delle foto sono conservati per il futuro e non sono caricati dalla scena.
+
+`node verify-souvenirs.mjs` verifica corrispondenza città-stanza, ingombri, esclusione delle vasche e separazione degli appoggi. `node build-release.mjs` rigenera anche le posizioni dei souvenir.
 
 Verifica dei controlli: `node verify-controls.mjs`. Copre gesti simultanei, interruzioni e salto. La prova su iPhone/iPad fisici resta da completare.
 
