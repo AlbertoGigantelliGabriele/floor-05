@@ -14,6 +14,8 @@ Il rendering usa Three.js r170 incluso nel repository, texture procedurali, illu
 
 La zona gialla usa carta da parati procedurale ispirata ai riferimenti forniti: doppie righe, chevron consumati e trama tessuta. Moquette a fibre corte, angoli più scuri e neon di intensità diversa. Il ronzio varia con la distanza dalle lampade. Le oscillazioni luminose sono lente e leggere; si fermano con la preferenza di sistema per il movimento ridotto. Nessuna immagine di riferimento viene scaricata durante il gioco.
 
+L'ospedale ha vernice bicolore consumata, linoleum con giunture e segni leggeri, luce fredda non uniforme e ventilazione ovattata. Le piscine hanno fughe più definite, acqua azzurra con riflessi e caustiche animate, riverberi sulle superfici e gocce occasionali con eco. I suoni cambiano gradualmente attraversando le zone; il suono della piscina sfuma quando si esce. Gli effetti d'acqua sono stilizzati, senza riflessioni ray tracing, per contenere il costo sui dispositivi mobili.
+
 Verifica della pianta: `node verify-layout.mjs`. Il test controlla la raggiungibilità con il raggio del giocatore, le tre zone, la posizione iniziale e le collisioni con pareti e vasche.
 
 Le immagini sotto sono render locali della stessa geometria, degli stessi materiali e shader. Non sono screenshot di una sessione nel browser. Il browser remoto di prova ha WebGL disabilitato: la verifica interattiva grafica resta da completare su un browser compatibile.

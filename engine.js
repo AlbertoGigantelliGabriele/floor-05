@@ -1,6 +1,6 @@
 import * as THREE from './vendor/three.module.min.js';
-import {createTextures} from './materials.js?v=yellow-2';
-import {buildArchitecture} from './architecture.js?v=yellow-2';
+import {createTextures} from './materials.js?v=zones-3';
+import {buildArchitecture} from './architecture.js?v=zones-3';
 import {zoneAt,movePlayer,heights} from './layout.js';
 import {installTouchControls,createJump} from './controls.js?v=touch-1';
 
@@ -29,7 +29,8 @@ const touch=installTouchControls(canvas,[...document.querySelectorAll('#touch-co
 });
 document.body.classList.toggle('has-touch',navigator.maxTouchPoints>0);
 let last=performance.now(),time=0,steps=0,lampTimer=1,dragging=false,muted=false;
-let audio=null,humGain=null,noiseGain=null,filter=null;
+let audio=null,humGain=null,noiseGain=null,filter=null,poolGain=null,echo=null;
+let nextDrip=3;
 const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const moods={yellow:{fog:'#797653',density:.021},hospital:{fog:'#45675b',density:.025},pool:{fog:'#8aada5',density:.023}};
 const fogTarget=new THREE.Color();
@@ -53,7 +54,20 @@ function startAudio(){
   filter=audio.createBiquadFilter();filter.type='lowpass';filter.frequency.value=850;
   noiseGain=audio.createGain();noiseGain.gain.value=.07;
   source.connect(filter);filter.connect(noiseGain);noiseGain.connect(audio.destination);source.start();
+  // Short feedback echo gives the tiled rooms a different acoustic space.
+  poolGain=audio.createGain();poolGain.gain.value=0;poolGain.connect(audio.destination);
+  echo=audio.createDelay(1);echo.delayTime.value=.23;
+  const feedback=audio.createGain();feedback.gain.value=.32;
+  const damping=audio.createBiquadFilter();damping.type='lowpass';damping.frequency.value=1800;
+  echo.connect(damping);damping.connect(feedback);feedback.connect(echo);damping.connect(poolGain);
   audio.resume().catch(()=>{});
+}
+function waterDrop(){
+  const now=audio.currentTime,osc=audio.createOscillator(),gain=audio.createGain();
+  osc.type='sine';osc.frequency.setValueAtTime(950,now);osc.frequency.exponentialRampToValueAtTime(380,now+.12);
+  gain.gain.setValueAtTime(0,now);gain.gain.linearRampToValueAtTime(.022,now+.006);gain.gain.exponentialRampToValueAtTime(.0001,now+.23);
+  osc.connect(gain);gain.connect(poolGain);gain.connect(echo);osc.start(now);osc.stop(now+.25);
+  osc.onended=()=>{osc.disconnect();gain.disconnect();};
 }
 canvas.addEventListener('pointerdown',e=>{
   if(e.pointerType!=='mouse'||e.button!==0)return;
@@ -118,8 +132,10 @@ function animate(now){
     const proximity=1/(1+Math.hypot(closest.x-player.x,closest.z-player.z)*.6);
     const buzz=zone==='yellow'?.005+proximity*.009*(.92+.08*Math.sin(time*.64)):zone==='pool'?.002:.008;
     humGain.gain.setTargetAtTime(muted?0:buzz,audio.currentTime,.4);
-    noiseGain.gain.setTargetAtTime(muted?0:zone==='pool'?.14:.055,audio.currentTime,.4);
-    filter.frequency.setTargetAtTime(zone==='pool'?1400:650,audio.currentTime,.5);
+    noiseGain.gain.setTargetAtTime(muted?0:zone==='pool'?.11*(.88+.12*Math.sin(time*.37)):zone==='hospital'?.04:.055,audio.currentTime,.4);
+    filter.frequency.setTargetAtTime(zone==='pool'?1100:zone==='hospital'?340:650,audio.currentTime,.5);
+    poolGain.gain.setTargetAtTime(muted||zone!=='pool'?0:.45,audio.currentTime,.3);
+    if(zone==='pool'&&!muted){nextDrip-=dt;if(nextDrip<=0){waterDrop();nextDrip=3.5+Math.random()*4.5;}}
   }
   renderer.render(scene,camera);
 }

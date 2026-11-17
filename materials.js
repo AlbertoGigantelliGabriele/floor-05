@@ -62,19 +62,21 @@ export function createTextures(anisotropy){
       stains(c,.045);
     },anisotropy),
     hospitalWall:texture(c=>{
-      c.fillStyle='#b3c2b4';c.fillRect(0,0,512,260);
-      c.fillStyle='#507f6b';c.fillRect(0,260,512,252);
-      c.fillStyle='#4a7765';c.fillRect(0,257,512,4);noise(c,4);stains(c,.035);
+      c.fillStyle='#b5beb0';c.fillRect(0,0,512,260);
+      c.fillStyle='#427665';c.fillRect(0,260,512,252);
+      c.fillStyle='#3d6d5c';c.fillRect(0,257,512,4);noise(c,6);stains(c,.055);
+      for(let i=0;i<70;i++){c.fillStyle='rgba(32,54,43,.09)';c.fillRect(random()*512,350+random()*162,3+random()*12,.7);}
       c.fillStyle='rgba(222,231,218,.11)';c.fillRect(0,505,512,2);
     },anisotropy),
     hospitalFloor:texture(c=>{
-      c.fillStyle='#6e8e79';c.fillRect(0,0,512,512);noise(c,14);
+      c.fillStyle='#678571';c.fillRect(0,0,512,512);noise(c,18);
       for(let i=0;i<4500;i++){c.fillStyle=random()>.5?'rgba(210,221,197,.13)':'rgba(33,67,48,.09)';c.fillRect(random()*512,random()*512,1.4,1.4);}
-      c.fillStyle='rgba(35,62,48,.09)';c.fillRect(0,0,1,512);c.fillRect(0,0,512,1);
+      c.fillStyle='rgba(35,62,48,.18)';c.fillRect(0,0,1,512);
+      for(let i=0;i<32;i++){c.strokeStyle='rgba(35,53,43,.055)';c.lineWidth=1+random()*2;c.beginPath();const x=random()*512,y=random()*512;c.moveTo(x,y);c.lineTo(x+8+random()*30,y+random()*8);c.stroke();}
     },anisotropy),
-    poolWall:texture(c=>{tiles(c,'#c8d7cc','#9daea4',64);noise(c,3);},anisotropy),
-    poolFloor:texture(c=>{tiles(c,'#c5d2c4','#8caaa0',64);noise(c,5);},anisotropy),
-    poolBottom:texture(c=>{tiles(c,'#76a7a4','#668f8d',32);noise(c,5);},anisotropy),
+    poolWall:texture(c=>{tiles(c,'#d3ded7','#8ba4a0',64);noise(c,4);},anisotropy),
+    poolFloor:texture(c=>{tiles(c,'#c4d2cb','#7f9a96',64);noise(c,8);},anisotropy),
+    poolBottom:texture(c=>{tiles(c,'#7daeb4','#507f88',32);noise(c,5);},anisotropy),
     ceiling:texture(c=>{
       tiles(c,'#c4c5b1','#8f9587',256);noise(c,12);
       c.fillStyle='rgba(54,59,43,.22)';for(let i=0;i<5400;i++)c.fillRect(random()*512,random()*512,1,1);
@@ -116,12 +118,24 @@ export const fragmentShader=`
   void main(){
     vec3 albedo=texture2D(map,vUv).rgb;
     vec3 color=albedo*vLight;
-    if(atmosphere>.5){
+    if(atmosphere>.5 && atmosphere<1.5){
       float wear=.5+.5*sin(vWorld.x*.63+sin(vWorld.z*.41))*sin(vWorld.z*.74+vWorld.x*.16);
       color*=.91+.09*wear;
       // Slow, shallow light drift: no abrupt flashes, disabled for reduced motion.
       color*=.978+.022*sin(time*.64+vWorld.x*.21+vWorld.z*.18);
       if(abs(vNormal.y)<.5)color*=.86+.14*smoothstep(.0,.65,vWorld.y);
+    }
+    if(atmosphere>1.5 && atmosphere<2.5){
+      float scuff=.5+.5*sin(vWorld.x*.8+vWorld.z*.33)*sin(vWorld.z*1.2);
+      color*=.91+.09*scuff;
+      if(abs(vNormal.y)<.5)color*=.83+.17*smoothstep(0.,.55,vWorld.y);
+    }
+    if(atmosphere>2.5){
+      // Soft reflected ripples along the lower tiled walls.
+      float wave=sin(vWorld.x*4.7+vWorld.z*3.8+sin(vWorld.y*5.+time*.5));
+      float crossWave=sin(vWorld.x*2.6-vWorld.z*5.1+time*.42+vWorld.y*3.);
+      float caustic=pow(max(0.,1.-abs(wave+crossWave)*.6),9.);
+      color+=vec3(.035,.065,.07)*caustic*exp(-max(0.,vWorld.y)*.9);
     }
     vec3 view=normalize(cameraPosition-vWorld);
     if(gloss>0.0 && vNormal.y>.5){
@@ -130,7 +144,7 @@ export const fragmentShader=`
         for(int i=0;i<8;i++){
           float t=(lamps[i].y-vWorld.y)/ray.y;
           vec2 d=vWorld.xz+ray.xz*t-lamps[i].xz;
-          float halo=exp(-dot(d,d)*2.5);
+          float halo=exp(-pow(d.x*2.8,4.)-pow(d.y*1.6,4.))*.65+exp(-dot(d,d)*1.4)*.18;
           float falloff=1./(1.+t*.08);
           color+=vec3(.72,.82,.7)*halo*falloff*gloss;
         }
@@ -162,8 +176,8 @@ export const waterFragment=`
     vec2 uv=p*4.2+vec2(a,b)*.065;
     vec2 tile=abs(fract(uv)-.5);
     float grout=smoothstep(.47,.49,max(tile.x,tile.y));
-    float caustic=pow(.5+.5*sin(p.x*9.+sin(p.y*7.+time*.3)+time*.36),14.)*.04;
-    vec3 color=mix(vec3(.105,.31,.30),vec3(.19,.39,.38),fresnel);
+    float caustic=pow(max(0.,1.-abs(sin(p.x*8.+sin(p.y*5.+time*.3))+cos(p.y*7.-time*.36))*.5),12.)*.085;
+    vec3 color=mix(vec3(.085,.28,.32),vec3(.22,.40,.43),fresnel);
     color*=1.-grout*.22;color+=caustic;
     vec3 ray=reflect(-v,n);
     if(ray.y>.01)for(int i=0;i<8;i++){

@@ -1,15 +1,15 @@
 import * as THREE from './vendor/three.module.min.js';
 import {floor,WIDTH,DEPTH,rooms,corridors,pools,columns,isFloor,zoneAt,heights,lineOfSight} from './layout.js';
-import {vertexShader,fragmentShader,waterVertex,waterFragment} from './materials.js?v=yellow-2';
+import {vertexShader,fragmentShader,waterVertex,waterFragment} from './materials.js?v=zones-3';
 
 export function buildArchitecture(scene,textures,shared){
   const lamps=[];
-  const lightColors={yellow:[1,.95,.75],hospital:[.78,1,.87],pool:[.83,.96,1]};
+  const lightColors={yellow:[1,.95,.75],hospital:[.70,.92,.86],pool:[.83,.96,1]};
   function lamp(x,z){
     if(!isFloor(x,z)||lamps.some(l=>Math.hypot(l.x-x,l.z-z)<2.65))return;
     const zone=zoneAt(x,z);
     const variation=(Math.sin(x*12.9898+z*78.233)*43758.5453)%1;
-    const power=zone==='yellow'?.38+.85*Math.abs(variation):1;
+    const power=zone==='yellow'?.38+.85*Math.abs(variation):zone==='hospital'?.65+.5*Math.abs(variation):.9+.2*Math.abs(variation);
     lamps.push({x,z,y:heights[zone]-.09,zone,power,color:lightColors[zone]});
   }
   rooms.forEach(r=>{
@@ -140,7 +140,7 @@ export function buildArchitecture(scene,textures,shared){
     geo.setAttribute('uv',new THREE.Float32BufferAttribute(g.uv,2));
     geo.setAttribute('light',new THREE.Float32BufferAttribute(g.light,3));geo.computeBoundingSphere();
     const material=new THREE.ShaderMaterial({
-      vertexShader,fragmentShader,uniforms:{...shared,map:{value:textures[name]},atmosphere:{value:name.startsWith('yellow')?1:0},gloss:{value:name==='hospitalFloor'?.16:name==='poolFloor'?.21:0},emission:{value:name==='light'?2.6:0}}
+      vertexShader,fragmentShader,uniforms:{...shared,map:{value:textures[name]},atmosphere:{value:name.startsWith('yellow')?1:name.startsWith('hospital')?2:name.startsWith('pool')?3:0},gloss:{value:name==='hospitalFloor'?.23:name==='poolFloor'?.30:0},emission:{value:name==='light'?2.6:0}}
     });
     const mesh=new THREE.Mesh(geo,material);scene.add(mesh);triangles+=g.p.length/9;
   }
