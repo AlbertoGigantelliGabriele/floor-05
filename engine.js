@@ -1,7 +1,8 @@
 import * as THREE from './vendor/three.module.min.js';
 import {createTextures} from './materials.js?v=raw-1';
 import {buildArchitecture} from './architecture.js?v=raw-1';
-import {zoneAt,movePlayer} from './layout.js';
+import {zoneAt,movePlayer,heights} from './layout.js';
+import {installTouchControls,createJump} from './controls.js?v=touch-1';
 
 const canvas=document.getElementById('world');
 const failure=document.getElementById('failure');
@@ -21,6 +22,12 @@ const textures=createTextures(Math.min(8,renderer.capabilities.getMaxAnisotropy(
 const building=buildArchitecture(scene,textures,uniforms);
 const player={x:32,z:65.2,yaw:0,pitch:-.015};
 const keys=new Set();
+const jump=createJump();
+const touch=installTouchControls(canvas,[...document.querySelectorAll('#touch-controls button')],{
+  look:(x,y)=>{player.yaw-=x;player.pitch=Math.max(-1.25,Math.min(1.25,player.pitch-y));},
+  jump:()=>jump.start(),activate:()=>startAudio()
+});
+document.body.classList.toggle('has-touch',navigator.maxTouchPoints>0);
 let last=performance.now(),time=0,steps=0,lampTimer=1,dragging=false,muted=false;
 let audio=null,humGain=null,noiseGain=null,filter=null;
 const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -48,15 +55,18 @@ function startAudio(){
   source.connect(filter);filter.connect(noiseGain);noiseGain.connect(audio.destination);source.start();
   audio.resume().catch(()=>{});
 }
-canvas.addEventListener('click',()=>{
+canvas.addEventListener('pointerdown',e=>{
+  if(e.pointerType!=='mouse'||e.button!==0)return;
   canvas.focus({preventScroll:true});startAudio();
   if(document.pointerLockElement!==canvas&&canvas.requestPointerLock){
     try{const lock=canvas.requestPointerLock();if(lock?.catch)lock.catch(()=>{});}catch{}
   }
 });
-canvas.addEventListener('mousedown',e=>{if(e.button===0)dragging=true;});
-addEventListener('mouseup',()=>{dragging=false;});
+canvas.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse'&&e.button===0)dragging=true;});
+addEventListener('pointerup',()=>{dragging=false;});
+addEventListener('pointercancel',()=>{dragging=false;});
 addEventListener('mousemove',e=>{
+  if(e.sourceCapabilities?.firesTouchEvents)return;
   if(document.pointerLockElement!==canvas&&!dragging)return;
   player.yaw-=e.movementX*.0020;
   player.pitch=Math.max(-1.25,Math.min(1.25,player.pitch-e.movementY*.0018));
@@ -67,29 +77,31 @@ addEventListener('keydown',e=>{
     e.preventDefault();keys.add(e.code);
   }
   if(e.code==='KeyM'&&!e.repeat){muted=!muted;}
+  if(e.code==='Space'){e.preventDefault();if(!e.repeat)jump.start();}
 });
 addEventListener('keyup',e=>keys.delete(e.code));
 addEventListener('blur',()=>{keys.clear();dragging=false;if(audio)audio.suspend().catch(()=>{});});
 document.addEventListener('visibilitychange',()=>{
   keys.clear();if(document.hidden&&audio)audio.suspend().catch(()=>{});last=performance.now();
 });
-canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();keys.clear();failure.textContent='La scena ha perso il contesto grafico. Ricarica la pagina per riprendere.';failure.hidden=false;});
+canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();keys.clear();touch.reset();document.body.classList.remove('scene-ready');failure.textContent='La scena ha perso il contesto grafico. Ricarica la pagina per riprendere.';failure.hidden=false;});
 
 function animate(now){
   requestAnimationFrame(animate);
   if(document.hidden)return;
   const dt=Math.min(.05,(now-last)/1000);last=now;time+=dt;
-  let forward=Number(keys.has('KeyW')||keys.has('ArrowUp'))-Number(keys.has('KeyS')||keys.has('ArrowDown'));
+  let forward=Number(touch.forward||keys.has('KeyW')||keys.has('ArrowUp'))-Number(keys.has('KeyS')||keys.has('ArrowDown'));
   let sideways=Number(keys.has('KeyD')||keys.has('ArrowRight'))-Number(keys.has('KeyA')||keys.has('ArrowLeft'));
   const length=Math.hypot(forward,sideways);
   if(length){
     forward/=length;sideways/=length;
-    const speed=(keys.has('ShiftLeft')||keys.has('ShiftRight')?3.8:2.35)*dt;
+    const speed=(touch.running||keys.has('ShiftLeft')||keys.has('ShiftRight')?3.8:2.35)*dt;
     movePlayer(player,(-Math.sin(player.yaw)*forward+Math.cos(player.yaw)*sideways)*speed,
       (-Math.cos(player.yaw)*forward-Math.sin(player.yaw)*sideways)*speed);
     steps+=speed;
   }
-  camera.position.set(player.x,1.66+(length&&!reduceMotion?Math.sin(steps*8)*.012:0),player.z);
+  const elevation=jump.update(dt,heights[zoneAt(player.x,player.z)]);
+  camera.position.set(player.x,1.66+elevation+(length&&!elevation&&!reduceMotion?Math.sin(steps*8)*.012:0),player.z);
   camera.rotation.set(player.pitch,player.yaw,0,'YXZ');
   const zone=zoneAt(player.x,player.z),mood=moods[zone];
   fogTarget.set(mood.fog);uniforms.fogColor.value.lerp(fogTarget,1-Math.exp(-dt*2));
@@ -111,4 +123,5 @@ function animate(now){
 // Non-interactive diagnostics for QA; no teleport controls or debug interface.
 canvas.dataset.ready='true';canvas.dataset.rooms=String(building.roomCount);
 canvas.dataset.renderer='webgl';
+document.body.classList.add('scene-ready');
 requestAnimationFrame(animate);

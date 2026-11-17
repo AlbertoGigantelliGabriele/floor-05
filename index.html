@@ -6,12 +6,16 @@
   <meta name="theme-color" content="#191c15">
   <meta name="description" content="FLOOR 05 — stanze, corridoi, silenzio.">
   <title>FLOOR 05</title>
-  <link rel="stylesheet" href="base.css?v=raw-1">
+  <link rel="stylesheet" href="base.css?v=touch-1">
 </head>
 <body>
   <canvas id="world" tabindex="0" aria-label="Backrooms in prima persona. Clicca nella scena per usare il mouse. WASD per camminare, Maiusc per accelerare, Esc per liberare il mouse."></canvas>
   <div id="failure" role="alert" hidden>Il browser non riesce ad avviare la scena 3D. Prova con l'accelerazione grafica attiva.</div>
+  <div id="touch-controls" aria-label="Comandi touch">
+    <div class="movement"><button type="button" data-action="walk">Cammina</button><button type="button" data-action="run">Corri</button></div>
+    <button type="button" data-action="jump">Salta</button>
+  </div>
   <noscript>Attiva JavaScript per esplorare FLOOR 05.</noscript>
-  <script type="module" src="engine.js?v=raw-1"></script>
+  <script type="module" src="engine.js?v=touch-1"></script>
 </body>
 </html>

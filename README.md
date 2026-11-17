@@ -4,7 +4,11 @@ Backrooms esplorabili in prima persona: 26 ambienti collegati su un unico piano,
 
 **[Apri il sito](https://albertogigantelligabriele.github.io/floor-05/)**. Clicca nella scena per catturare il mouse, usa WASD per camminare, Maiusc per accelerare ed Esc per liberare il puntatore. M attiva/disattiva il suono.
 
-Questa versione si concentra sull'architettura. Nessuna porta, HUD, schermata iniziale, pulsante, foto, souvenir o login. Pensata per tastiera e mouse; richiede WebGL 2. Gli strumenti delle foto sono conservati per il futuro e non sono caricati dalla scena.
+Su iPhone/iPad e dispositivi touch: tieni premuto **Cammina** o **Corri**, trascina un altro dito nella scena per guardarti intorno e tocca **Salta**. Su computer il salto usa la barra spaziatrice; i pulsanti restano nascosti sui dispositivi senza touch.
+
+Questa versione si concentra sull'architettura. Nessuna porta, schermata iniziale, foto, souvenir o login. Richiede WebGL 2. Gli strumenti delle foto sono conservati per il futuro e non sono caricati dalla scena.
+
+Verifica dei controlli: `node verify-controls.mjs`. Copre gesti simultanei, interruzioni e salto. La prova su iPhone/iPad fisici resta da completare.
 
 Il rendering usa Three.js r170 incluso nel repository, texture procedurali, illuminazione precalcolata e riflessi semplificati. Nessuna dipendenza da CDN durante l'uso. Licenza Three.js in `vendor/THREE-LICENSE.txt`.
 

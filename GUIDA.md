@@ -6,10 +6,11 @@ Apri https://albertogigantelligabriele.github.io/floor-05/ con un browser che su
 - WASD: cammina. Il movimento diagonale ha la stessa velocità.
 - Mouse: guarda intorno.
 - Maiusc: accelera.
+- Barra spaziatrice: salta.
 - Esc: libera il puntatore e interrompe il movimento.
 - M: attiva/disattiva l'audio.
 
-Non ci sono elementi di interfaccia durante l'esplorazione. Questa versione è pensata per un computer con tastiera e mouse.
+Su iPhone/iPad: tieni premuto **Cammina** o **Corri** in basso a sinistra; trascina un altro dito nella scena per orientare la visuale. **Salta** è in basso a destra. Puoi muoverti e guardare contemporaneamente. Rilasciando il pulsante ti fermi; cambiare app o ruotare il dispositivo interrompe i comandi. Il primo tocco avvia anche il suono. I pulsanti compaiono solo sui dispositivi touch e rispettano i margini di sicurezza dello schermo. Su computer senza touch l'interfaccia resta invisibile.
 
 La pianta ha 26 ambienti: ingresso e zona centrale gialli, ala ospedaliera a sinistra, piscine a destra. Tutti i passaggi sono aperti. Le vasche hanno un bordo percorribile; le collisioni impediscono di cadere nell'acqua. Le due stanze riservate al futuro finale sono vuote e accessibili.
 
@@ -19,6 +20,7 @@ La pianta ha 26 ambienti: ingresso e zona centrale gialli, ala ospedaliera a sin
 - `architecture.js`: geometria e illuminazione precalcolata.
 - `materials.js`: texture, materiali e shader dell'acqua.
 - `engine.js`: visualizzazione, comandi e audio.
+- `controls.js`: gesti multitouch e fisica del salto; `node verify-controls.mjs` esegue i test.
 - `base.css` e `index.html`: pagina a tutto schermo.
 - `vendor/`: Three.js r170 e relativa licenza MIT.
 
