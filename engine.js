@@ -3,6 +3,7 @@ import {createTextures} from './materials.js?v=seam-fix-5';
 import {buildArchitecture} from './architecture.js?v=seam-fix-5';
 import {zoneAt,movePlayer,heights} from './layout.js';
 import {installTouchControls,createJump} from './controls.js?v=touch-1';
+import {createGait,createFootsteps} from './footsteps.js';
 
 const canvas=document.getElementById('world');
 const failure=document.getElementById('failure');
@@ -23,6 +24,7 @@ const building=buildArchitecture(scene,textures,uniforms);
 const player={x:32,z:65.2,yaw:0,pitch:-.015};
 const keys=new Set();
 const jump=createJump();
+const gait=createGait();
 const touch=installTouchControls(canvas,[...document.querySelectorAll('#touch-controls button')],{
   look:(x,y)=>{player.yaw-=x;player.pitch=Math.max(-1.25,Math.min(1.25,player.pitch-y));},
   jump:()=>jump.start(),activate:()=>startAudio()
@@ -31,6 +33,7 @@ document.body.classList.toggle('has-touch',navigator.maxTouchPoints>0);
 let last=performance.now(),time=0,steps=0,lampTimer=1,dragging=false,muted=false;
 let audio=null,humGain=null,noiseGain=null,filter=null,poolGain=null,echo=null;
 let nextDrip=3;
+let footsteps=null;
 const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const moods={yellow:{fog:'#797653',density:.021},hospital:{fog:'#45675b',density:.025},pool:{fog:'#8aada5',density:.023}};
 const fogTarget=new THREE.Color();
@@ -60,6 +63,7 @@ function startAudio(){
   const feedback=audio.createGain();feedback.gain.value=.32;
   const damping=audio.createBiquadFilter();damping.type='lowpass';damping.frequency.value=1800;
   echo.connect(damping);damping.connect(feedback);feedback.connect(echo);damping.connect(poolGain);
+  footsteps=createFootsteps(audio,echo);
   audio.resume().catch(()=>{});
 }
 function waterDrop(){
@@ -90,13 +94,13 @@ addEventListener('keydown',e=>{
   if(['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','ShiftLeft','ShiftRight'].includes(e.code)){
     e.preventDefault();keys.add(e.code);
   }
-  if(e.code==='KeyM'&&!e.repeat){muted=!muted;}
+  if(e.code==='KeyM'&&!e.repeat){muted=!muted;footsteps?.mute(muted);}
   if(e.code==='Space'){e.preventDefault();if(!e.repeat)jump.start();}
 });
 addEventListener('keyup',e=>keys.delete(e.code));
-addEventListener('blur',()=>{keys.clear();dragging=false;if(audio)audio.suspend().catch(()=>{});});
+addEventListener('blur',()=>{keys.clear();dragging=false;gait.reset();if(audio)audio.suspend().catch(()=>{});});
 document.addEventListener('visibilitychange',()=>{
-  keys.clear();if(document.hidden&&audio)audio.suspend().catch(()=>{});last=performance.now();
+  keys.clear();gait.reset();if(document.hidden&&audio)audio.suspend().catch(()=>{});last=performance.now();
 });
 canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();keys.clear();touch.reset();document.body.classList.remove('scene-ready');failure.textContent='La scena ha perso il contesto grafico. Ricarica la pagina per riprendere.';failure.hidden=false;});
 
@@ -107,17 +111,22 @@ function animate(now){
   let forward=Number(touch.forward||keys.has('KeyW')||keys.has('ArrowUp'))-Number(keys.has('KeyS')||keys.has('ArrowDown'));
   let sideways=Number(keys.has('KeyD')||keys.has('ArrowRight'))-Number(keys.has('KeyA')||keys.has('ArrowLeft'));
   const length=Math.hypot(forward,sideways);
+  const running=touch.running||keys.has('ShiftLeft')||keys.has('ShiftRight');
+  const oldX=player.x,oldZ=player.z;
   if(length){
     forward/=length;sideways/=length;
-    const speed=(touch.running||keys.has('ShiftLeft')||keys.has('ShiftRight')?3.8:2.35)*dt;
+    const speed=(running?3.8:2.35)*dt;
     movePlayer(player,(-Math.sin(player.yaw)*forward+Math.cos(player.yaw)*sideways)*speed,
       (-Math.cos(player.yaw)*forward-Math.sin(player.yaw)*sideways)*speed);
-    steps+=speed;
   }
+  const travel=Math.hypot(player.x-oldX,player.z-oldZ);
   const elevation=jump.update(dt,heights[zoneAt(player.x,player.z)]);
-  camera.position.set(player.x,1.66+elevation+(length&&!elevation&&!reduceMotion?Math.sin(steps*8)*.012:0),player.z);
+  if(!elevation)steps+=travel;
+  camera.position.set(player.x,1.66+elevation+(travel>.0001&&!elevation&&!reduceMotion?Math.sin(steps*8)*.012:0),player.z);
   camera.rotation.set(player.pitch,player.yaw,0,'YXZ');
   const zone=zoneAt(player.x,player.z),mood=moods[zone];
+  const footfall=gait.update(travel,elevation,running);
+  if(footfall&&audio?.state==='running'&&!muted)footsteps.play(zone,running,footfall==='land');
   fogTarget.set(mood.fog);uniforms.fogColor.value.lerp(fogTarget,1-Math.exp(-dt*2));
   uniforms.fogDensity.value+=(mood.density-uniforms.fogDensity.value)*Math.min(1,dt*2);
   uniforms.time.value=reduceMotion?0:time;scene.background=uniforms.fogColor.value;

@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import {createGait} from './footsteps.js';
+const gait=createGait();
+for(let i=0;i<1000;i++)assert.equal(gait.update(0,0,true),null,'No steps against walls');
+let walking=0,running=0;
+for(let i=0;i<600;i++)walking+=gait.update(2.35/60,0,false)==='step';
+gait.reset();
+for(let i=0;i<600;i++)running+=gait.update(3.8/60,0,true)==='step';
+assert.ok(running>walking&&walking>0);
+for(let i=0;i<30;i++)assert.equal(gait.update(.1,.3,true),null,'No steps mid-air');
+assert.equal(gait.update(.1,0,true),'land');
+assert.equal(gait.update(0,0,false),null,'Landing fires once');
+gait.update(.1,.3,true);gait.reset();assert.equal(gait.update(0,0,false),null,'Reset suppresses stale landing');
+console.log(`PASS: stationary/collision silence, walking (${walking}) vs running (${running}), airborne silence, single landing and reset.`);
