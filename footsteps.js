@@ -15,8 +15,8 @@ export function createGait(){
   };
 }
 
-export function createFootsteps(context,echo){
-  const output=context.createGain();output.gain.value=1;output.connect(context.destination);
+export function createFootsteps(context,echo,destination=context.destination){
+  const output=context.createGain();output.gain.value=1;output.connect(destination);
   const buffer=context.createBuffer(1,Math.ceil(context.sampleRate*.28),context.sampleRate);
   const data=buffer.getChannelData(0);
   for(let i=0;i<data.length;i++)data[i]=Math.random()*2-1;

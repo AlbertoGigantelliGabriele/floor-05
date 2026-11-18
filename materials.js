@@ -120,9 +120,11 @@ export const fragmentShader=`
   uniform float emission;
   uniform float time;
   uniform float atmosphere;
+  uniform float reflectionPass;
   uniform vec3 lamps[8];
   varying vec2 vUv;varying vec3 vLight;varying vec3 vWorld;varying vec3 vNormal;
   void main(){
+    if(reflectionPass>.5 && vWorld.y<-.219)discard;
     vec3 albedo=texture2D(map,vUv).rgb;
     vec3 color=albedo*vLight;
     if(atmosphere>.5 && atmosphere<1.5){
@@ -172,6 +174,7 @@ export const waterVertex=`
 `;
 export const waterFragment=`
   uniform float time;uniform vec3 lamps[8];uniform vec3 fogColor;uniform float fogDensity;
+  uniform sampler2D reflectionMap;uniform mat4 reflectionMatrix;uniform float reflectionReady;
   varying vec3 vWorld;
   void main(){
     vec2 p=vWorld.xz;
@@ -186,12 +189,18 @@ export const waterFragment=`
     float caustic=pow(max(0.,1.-abs(sin(p.x*8.+sin(p.y*5.+time*.3))+cos(p.y*7.-time*.36))*.5),12.)*.035;
     vec3 color=mix(vec3(.085,.28,.32),vec3(.22,.40,.43),fresnel);
     color*=1.-grout*.22;color+=caustic;
+    if(reflectionReady>.5){
+      vec4 projected=reflectionMatrix*vec4(vWorld,1.);
+      vec2 screen=projected.xy/projected.w+vec2(a,b)*.0018;
+      vec3 reflected=texture2D(reflectionMap,clamp(screen,.001,.999)).rgb;
+      color=mix(color,reflected,.26+.48*fresnel);
+    }
     vec3 ray=reflect(-v,n);
     if(ray.y>.01)for(int i=0;i<8;i++){
       float t=(lamps[i].y-vWorld.y)/ray.y;
       vec2 d=p+ray.xz*t-lamps[i].xz;
       float patch=exp(-pow(d.x*2.3,4.)-pow(d.y*1.6,4.));
-      color+=vec3(.65,.79,.72)*patch*(.15+.35*fresnel);
+      color+=vec3(.85,.94,.90)*patch*(.32+.48*fresnel)*(reflectionReady>.5?.15:1.);
     }
     float dist=length(cameraPosition-vWorld);
     color=mix(color,fogColor,min(.7,1.-exp(-fogDensity*fogDensity*dist*dist)));

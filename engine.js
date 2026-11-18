@@ -4,6 +4,7 @@ import {buildArchitecture} from './architecture.js?v=seam-fix-5';
 import {zoneAt,movePlayer,heights} from './layout.js';
 import {installTouchControls,createJump} from './controls.js?v=touch-1';
 import {createGait,createFootsteps} from './footsteps.js';
+import {createReflections} from './reflections.js';
 
 const canvas=document.getElementById('world');
 const failure=document.getElementById('failure');
@@ -21,6 +22,7 @@ const uniforms={
 };
 const textures=createTextures(Math.min(8,renderer.capabilities.getMaxAnisotropy()));
 const building=buildArchitecture(scene,textures,uniforms);
+const reflections=createReflections(renderer,scene,building.waterMeshes,uniforms);
 const player={x:32,z:65.2,yaw:0,pitch:-.015};
 const keys=new Set();
 const jump=createJump();
@@ -49,21 +51,24 @@ function startAudio(){
   if(audio){if(audio.state==='suspended')audio.resume().catch(()=>{});return;}
   const Context=window.AudioContext||window.webkitAudioContext;if(!Context)return;
   audio=new Context();
-  humGain=audio.createGain();humGain.gain.value=.011;humGain.connect(audio.destination);
+  const master=audio.createGain(),limiter=audio.createDynamicsCompressor();master.gain.value=2.8;
+  limiter.threshold.value=-8;limiter.knee.value=6;limiter.ratio.value=8;limiter.attack.value=.003;limiter.release.value=.15;
+  master.connect(limiter);limiter.connect(audio.destination);
+  humGain=audio.createGain();humGain.gain.value=.011;humGain.connect(master);
   for(const hz of [50,100,100.7]){const osc=audio.createOscillator();osc.type='sine';osc.frequency.value=hz;osc.connect(humGain);osc.start();}
   const buffer=audio.createBuffer(1,audio.sampleRate*3,audio.sampleRate),data=buffer.getChannelData(0);
   let previous=0;for(let i=0;i<data.length;i++){previous=(previous+Math.random()*.03-.015)*.98;data[i]=previous;}
   const source=audio.createBufferSource();source.buffer=buffer;source.loop=true;
   filter=audio.createBiquadFilter();filter.type='lowpass';filter.frequency.value=850;
   noiseGain=audio.createGain();noiseGain.gain.value=.07;
-  source.connect(filter);filter.connect(noiseGain);noiseGain.connect(audio.destination);source.start();
+  source.connect(filter);filter.connect(noiseGain);noiseGain.connect(master);source.start();
   // Short feedback echo gives the tiled rooms a different acoustic space.
-  poolGain=audio.createGain();poolGain.gain.value=0;poolGain.connect(audio.destination);
+  poolGain=audio.createGain();poolGain.gain.value=0;poolGain.connect(master);
   echo=audio.createDelay(1);echo.delayTime.value=.23;
   const feedback=audio.createGain();feedback.gain.value=.32;
   const damping=audio.createBiquadFilter();damping.type='lowpass';damping.frequency.value=1800;
   echo.connect(damping);damping.connect(feedback);feedback.connect(echo);damping.connect(poolGain);
-  footsteps=createFootsteps(audio,echo);
+  footsteps=createFootsteps(audio,echo,master);
   audio.resume().catch(()=>{});
 }
 function waterDrop(){
@@ -146,6 +151,7 @@ function animate(now){
     poolGain.gain.setTargetAtTime(muted||zone!=='pool'?0:.45,audio.currentTime,.3);
     if(zone==='pool'&&!muted){nextDrip-=dt;if(nextDrip<=0){waterDrop();nextDrip=3.5+Math.random()*4.5;}}
   }
+  reflections.update(camera,time);
   renderer.render(scene,camera);
 }
 // Non-interactive diagnostics for QA; no teleport controls or debug interface.

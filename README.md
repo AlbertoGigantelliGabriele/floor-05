@@ -12,11 +12,11 @@ La scena contiene otto gruppi di souvenir, per un totale di 74 oggetti, ciascuno
 
 Verifica dei controlli: `node verify-controls.mjs`. Copre gesti simultanei, interruzioni e salto. La prova su iPhone/iPad fisici resta da completare.
 
-Il rendering usa Three.js r170 incluso nel repository, texture procedurali, illuminazione precalcolata e riflessi semplificati. Nessuna dipendenza da CDN durante l'uso. Licenza Three.js in `vendor/THREE-LICENSE.txt`.
+Il rendering usa Three.js r170 incluso nel repository, texture procedurali e illuminazione precalcolata. Le vasche riflettono neon e pareti con una vista specchiata aggiornata fino a 30 volte al secondo quando il giocatore è vicino all'acqua. Nessuna dipendenza da CDN durante l'uso. Licenza Three.js in `vendor/THREE-LICENSE.txt`.
 
 La zona gialla usa carta da parati procedurale ispirata ai riferimenti forniti: doppie righe, chevron consumati e trama tessuta. Moquette a fibre corte, angoli più scuri e neon di intensità diversa. Il ronzio varia con la distanza dalle lampade. Le oscillazioni luminose sono lente e leggere; si fermano con la preferenza di sistema per il movimento ridotto. Nessuna immagine di riferimento viene scaricata durante il gioco.
 
-L'ospedale ha vernice bicolore consumata, linoleum con giunture e segni leggeri, luce fredda non uniforme e ventilazione ovattata. Le piscine hanno piastrelle da 15 cm sulle pareti e da 20 cm sul pavimento, una fascia ceramica integrata nella parete e gocce occasionali con eco. Increspature e riflessi sono confinati ai piani d'acqua delle vasche: pareti e pavimenti asciutti non hanno animazioni acquatiche né riflessi dei neon. Ogni vasca riflette solo lampade visibili dal proprio centro. I suoni cambiano gradualmente attraversando le zone; il suono della piscina sfuma quando si esce. Gli effetti d'acqua sono stilizzati, senza riflessioni ray tracing, per contenere il costo sui dispositivi mobili.
+L'ospedale ha vernice bicolore consumata, linoleum con giunture e segni leggeri, luce fredda non uniforme e ventilazione ovattata. Le piscine hanno piastrelle da 15 cm sulle pareti e da 20 cm sul pavimento, una fascia ceramica integrata nella parete e gocce occasionali con eco. Increspature e riflessi sono confinati ai piani d'acqua delle vasche: pareti e pavimenti asciutti non hanno animazioni acquatiche né riflessi dei neon. I suoni cambiano gradualmente attraversando le zone; il suono della piscina sfuma quando si esce. Il bus audio principale ha un guadagno di 2,8 con compressione per contenere i picchi. La riflessione planare usa una texture 512×512 condivisa fra le vasche, senza ray tracing.
 
 Verifica della pianta: `node verify-layout.mjs`. Il test controlla la raggiungibilità con il raggio del giocatore, le tre zone, la posizione iniziale e le collisioni con pareti e vasche.
 
@@ -25,6 +25,8 @@ Le immagini sotto sono render locali della stessa geometria, degli stessi materi
 ![Zona gialla](docs/previews/yellow.jpg)
 ![Ospedale](docs/previews/hospital.jpg)
 ![Piscine](docs/previews/pool.jpg)
+
+Il singolo [studio della Tour Eiffel](docs/previews/eiffel-study.jpg) mostra la proposta di modellino metallico con gambe curve, archi e tralicci. È in revisione e non è ancora integrato nel cumulo di Parigi.
 
 [Guida](GUIDA.md)
 
