@@ -26,7 +26,7 @@ Le immagini sotto sono render locali della stessa geometria, degli stessi materi
 ![Ospedale](docs/previews/hospital.jpg)
 ![Piscine](docs/previews/pool.jpg)
 
-Il singolo [studio della Tour Eiffel](docs/previews/eiffel-study.jpg) mostra la proposta di modellino metallico con gambe curve, archi e tralicci. È in revisione e non è ancora integrato nel cumulo di Parigi.
+Le Tour Eiffel del cumulo di Parigi hanno gambe incurvate, quattro archi alla base, piattaforme con ringhiere e aste sottili di metallo grigio-bruno. [Vista ravvicinata](docs/previews/eiffel-study.jpg) e [cumulo nella stanza](docs/previews/paris-heap.jpg).
 
 [Guida](GUIDA.md)
 

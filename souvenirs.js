@@ -3,6 +3,7 @@ import {souvenirHeaps} from './souvenir-layout.js';
 import {zoneAt} from './layout.js';
 import {surfaceColumns,settle,placementLift} from './packing.js';
 import {placements} from './souvenir-placements.js';
+import {createEiffelStudy} from './eiffel-study.js';
 
 // Small low-poly souvenir models, merged into a single draw call.
 export function buildSouvenirs(lightAt,repack=false){
@@ -25,16 +26,7 @@ export function buildSouvenirs(lightAt,repack=false){
   const brass='#94784b',stone='#d1c3a0',dark='#273b3b',red='#a43b2c';
   const models={
     paris(){
-      for(const x of [-1,1])for(const z of [-1,1]){
-        beam([x*.32,0,z*.32],[x*.1,.85,z*.1],.027,brass);
-        beam([x*.3,.12,z*.3],[-x*.13,.64,z*.13],.012,brass);
-      }
-      box(.48,.055,.48,brass,0,.38);box(.29,.05,.29,brass,0,.76);
-      for(const axis of [0,2])for(const side of [-1,1])for(let j=0;j<4;j++){
-        const y0=.12+j*.16,y1=y0+.16,w0=.30-j*.043,w1=w0-.043;
-        for(const flip of [-1,1])beam(axis===0?[side*w0,y0,flip*w0]:[flip*w0,y0,side*w0],axis===0?[side*w1,y1,-flip*w1]:[-flip*w1,y1,side*w1],.009,brass);
-      }
-      cylinder(.018,.12,.5,brass,0,1.01,0,4);beam([0,1.26,0],[0,1.43,0],.012,brass);
+      for(const {geometry,color} of createEiffelStudy())part(geometry,color);
     },
     london(){
       box(.95,.52,.36,red,0,.32);box(.82,.025,.38,'#742a25',0,.59);

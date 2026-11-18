@@ -1,28 +1,42 @@
-// Review model only; not yet substituted into the Paris heap.
 import * as THREE from './vendor/three.module.min.js';
+
+// Four arched feet, three narrow decks and an aerial; open metal lattice.
 export function createEiffelStudy(){
-  const pieces=[],metal='#616965';
-  function rod(points,r=.006){const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)));pieces.push({geometry:new THREE.TubeGeometry(curve,Math.max(1,points.length-1)*5,r,6,false),color:metal});}
-  const levels=[[0,.25],[.18,.19],[.43,.115],[.58,.09],[.83,.065],[1.04,.046],[1.27,.021],[1.40,.013]];
-  for(const sx of [-1,1])for(const sz of [-1,1])rod(levels.map(([y,w])=>[sx*w,y,sz*w]),.009);
+  const pieces=[],metal='#746d5c',shade='#514f49',edge='#9b9380';
+  function rod(points,r=.0035,color=metal){
+    const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)));
+    pieces.push({geometry:new THREE.TubeGeometry(curve,Math.max(2,points.length*2),r,4,false),color});
+  }
+  function bar(a,b,r=.004,color=metal){rod([a,b],r,color);}
+  function deck(y,w,depth=.019){
+    const g=new THREE.BoxGeometry(w*2,depth,w*2);g.translate(0,y,0);pieces.push({geometry:g,color:shade});
+    for(const side of [-1,1]){
+      bar([-w,y+.055,side*w],[w,y+.055,side*w],.003,edge);
+      bar([side*w,y+.055,-w],[side*w,y+.055,w],.003,edge);
+      for(let j=-4;j<=4;j++){
+        bar([j*w/4,y+.012,side*w],[j*w/4,y+.055,side*w],.0025);
+        bar([side*w,y+.012,j*w/4],[side*w,y+.055,j*w/4],.0025);
+      }
+    }
+  }
+  const levels=[[.015,.34],[.12,.31],[.26,.245],[.44,.16],[.58,.13],[.73,.105],[.84,.085],[1.04,.058],[1.23,.038]];
+  for(const sx of [-1,1])for(const sz of [-1,1]){
+    rod(levels.map(([y,w])=>[sx*w,y,sz*w]),.0085);
+    rod(levels.slice(1,-1).map(([y,w])=>[sx*(w-.020),y,sz*(w-.020)]),.0035,edge);
+  }
   for(const axis of [0,2])for(const sign of [-1,1]){
     const point=(x,y,w)=>axis===0?[x,y,sign*w]:[sign*w,y,x];
-    // Curved arch between the two feet on every face.
-    rod([point(-.24,.035,.24),point(-.17,.19,.19),point(0,.30,.16),point(.17,.19,.19),point(.24,.035,.24)],.010);
-    for(let j=1;j<levels.length-1;j++){
-      const [y,w]=levels[j],[yn,wn]=levels[j+1];
-      rod([point(-w,y,w),point(wn,yn,wn)],.0045);
-      rod([point(w,y,w),point(-wn,yn,wn)],.0045);
-      rod([point(-w,y,w),point(w,y,w)],.005);
+    rod([point(-.34,.02,.34),point(-.26,.13,.265),point(-.16,.245,.23),point(0,.30,.20),point(.16,.245,.23),point(.26,.13,.265),point(.34,.02,.34)],.0085,edge);
+    for(let j=2;j<levels.length-1;j++){
+      const [y,w]=levels[j],[next,nw]=levels[j+1];
+      bar(point(-w,y,w),point(nw,next,nw),.0032);
+      bar(point(w,y,w),point(-nw,next,nw),.0032);
+      bar(point(-w,y,w),point(w,y,w),.0032);
     }
   }
-  for(const [y,w] of [[.43,.14],[.83,.085],[1.30,.035]]){
-    for(const sign of [-1,1]){
-      rod([[-w,y,sign*w],[w,y,sign*w]],.012);rod([[sign*w,y,-w],[sign*w,y,w]],.012);
-      rod([[-w,y+.035,sign*w],[w,y+.035,sign*w]],.004);rod([[sign*w,y+.035,-w],[sign*w,y+.035,w]],.004);
-      for(let i=-3;i<=3;i++){rod([[i*w/3,y,sign*w],[i*w/3,y+.035,sign*w]],.0025);rod([[sign*w,y,i*w/3],[sign*w,y+.035,i*w/3]],.0025);}
-    }
-  }
-  rod([[0,1.4,0],[0,1.58,0]],.005);
+  deck(.44,.183,.026);deck(.84,.101,.021);deck(1.235,.049,.014);
+  for(const sx of [-1,1])for(const sz of [-1,1])bar([sx*.036,1.25,sz*.036],[sx*.019,1.37,sz*.019],.004);
+  const cap=new THREE.CylinderGeometry(.025,.033,.025,8);cap.translate(0,1.38,0);pieces.push({geometry:cap,color:shade});
+  bar([0,1.39,0],[0,1.51,0],.003,edge);
   return pieces;
 }
