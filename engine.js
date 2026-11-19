@@ -1,3 +1,4 @@
+import {createApparitions} from './apparitions.js';
 import * as THREE from './vendor/three.module.min.js';
 import {createTextures} from './materials.js?v=seam-fix-5';
 import {buildArchitecture} from './architecture.js?v=seam-fix-5';
@@ -23,6 +24,7 @@ const uniforms={
 const textures=createTextures(Math.min(8,renderer.capabilities.getMaxAnisotropy()));
 const building=buildArchitecture(scene,textures,uniforms);
 const reflections=createReflections(renderer,scene,building.waterMeshes,uniforms);
+const updatePhotos=createApparitions(scene);
 const player={x:32,z:65.2,yaw:0,pitch:-.015};
 const keys=new Set();
 const jump=createJump();
@@ -96,6 +98,7 @@ addEventListener('mousemove',e=>{
 });
 document.addEventListener('pointerlockchange',()=>{keys.clear();dragging=false;});
 addEventListener('keydown',e=>{
+  if(document.querySelector('#album-lock').open)return;
   if(['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','ShiftLeft','ShiftRight'].includes(e.code)){
     e.preventDefault();keys.add(e.code);
   }
@@ -151,6 +154,7 @@ function animate(now){
     poolGain.gain.setTargetAtTime(muted||zone!=='pool'?0:.45,audio.currentTime,.3);
     if(zone==='pool'&&!muted){nextDrip-=dt;if(nextDrip<=0){waterDrop();nextDrip=3.5+Math.random()*4.5;}}
   }
+  updatePhotos(camera,travel);
   reflections.update(camera,time);
   renderer.render(scene,camera);
 }
