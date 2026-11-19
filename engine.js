@@ -37,7 +37,19 @@ document.body.classList.toggle('has-touch',navigator.maxTouchPoints>0);
 let last=performance.now(),time=0,steps=0,lampTimer=1,dragging=false,muted=false;
 let audio=null,humGain=null,noiseGain=null,filter=null,poolGain=null,echo=null;
 let nextDrip=3;
-let footsteps=null;
+let footsteps=null, splashBuffer=null, splashGain=null;
+const splashBytes=fetch(new URL('./audio/pool-entry.mp3',import.meta.url))
+  .then(response=>response.ok?response.arrayBuffer():null).catch(()=>null);
+function playSplash(speed){
+  if(!splashBuffer){footsteps.play('water',false,true);return;}
+  const source=audio.createBufferSource(),level=audio.createGain();
+  source.buffer=splashBuffer;
+  source.playbackRate.value=.94+Math.random()*.12;
+  level.gain.value=Math.min(.72,.33+.055*speed);
+  source.connect(level);level.connect(splashGain);level.connect(echo);
+  source.onended=()=>{source.disconnect();level.disconnect();};
+  source.start();
+}
 const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const moods={yellow:{fog:'#797653',density:.021},hospital:{fog:'#45675b',density:.025},pool:{fog:'#8aada5',density:.023}};
 const fogTarget=new THREE.Color();
@@ -71,6 +83,8 @@ function startAudio(){
   const damping=audio.createBiquadFilter();damping.type='lowpass';damping.frequency.value=1800;
   echo.connect(damping);damping.connect(feedback);feedback.connect(echo);damping.connect(poolGain);
   footsteps=createFootsteps(audio,echo,master);
+  splashGain=audio.createGain();splashGain.connect(master);
+  splashBytes.then(bytes=>bytes && audio.decodeAudioData(bytes)).then(buffer=>{splashBuffer=buffer;}).catch(()=>{});
   audio.resume().catch(()=>{});
 }
 function waterDrop(){
@@ -102,7 +116,7 @@ addEventListener('keydown',e=>{
   if(['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','ShiftLeft','ShiftRight'].includes(e.code)){
     e.preventDefault();keys.add(e.code);
   }
-  if(e.code==='KeyM'&&!e.repeat){muted=!muted;footsteps?.mute(muted);}
+  if(e.code==='KeyM'&&!e.repeat){muted=!muted;footsteps?.mute(muted);if(splashGain)splashGain.gain.setTargetAtTime(muted?0:1,audio.currentTime,.012);}
   if(e.code==='Space'){e.preventDefault();if(!e.repeat)jump.start();}
 });
 addEventListener('keyup',e=>keys.delete(e.code));
@@ -130,7 +144,7 @@ function animate(now){
   const travel=Math.hypot(player.x-oldX,player.z-oldZ);
   const basin=poolAt(player.x,player.z), ground=basin?-.72:0, before=jump.feet;
   const elevation=jump.update(dt,heights[zoneAt(player.x,player.z)],ground);
-  if(basin && before>-.22 && elevation<=-.22 && !muted)footsteps?.play('water',false,true);
+  if(basin && before>-.22 && elevation<=-.22 && audio?.state==='running' && !muted)playSplash((before-elevation)/dt);
   if(elevation===ground)steps+=travel;
   camera.position.set(player.x,1.66+elevation+(travel>.0001&&!elevation&&!reduceMotion?Math.sin(steps*8)*.012:0),player.z);
   camera.rotation.set(player.pitch,player.yaw,0,'YXZ');
