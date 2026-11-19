@@ -2,7 +2,7 @@ import {createApparitions} from './apparitions.js';
 import * as THREE from './vendor/three.module.min.js';
 import {createTextures} from './materials.js?v=seam-fix-5';
 import {buildArchitecture} from './architecture.js?v=seam-fix-5';
-import {zoneAt,poolAt,movePlayer,heights} from './layout.js';
+import {spawn,zoneAt,poolAt,movePlayer,heights} from './layout.js';
 import {installTouchControls,createJump} from './controls.js?v=touch-1';
 import {createGait,createFootsteps} from './footsteps.js';
 import {createReflections} from './reflections.js';
@@ -25,7 +25,7 @@ const textures=createTextures(Math.min(8,renderer.capabilities.getMaxAnisotropy(
 const building=buildArchitecture(scene,textures,uniforms);
 const reflections=createReflections(renderer,scene,building.waterMeshes,uniforms);
 const updatePhotos=createApparitions(scene);
-const player={x:32,z:65.2,yaw:0,pitch:-.015};
+const player={...spawn,yaw:0,pitch:-.015};
 const keys=new Set();
 const jump=createJump();
 const gait=createGait();

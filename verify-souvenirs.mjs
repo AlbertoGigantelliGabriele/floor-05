@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import * as THREE from './vendor/three.module.min.js';
 import {rooms,pools} from './layout.js';
-import {souvenirHeaps} from './souvenir-layout.js';
+import {souvenirHeaps} from './layout.js';
 import {surfaceColumns,settle} from './packing.js';
 for(const h of souvenirHeaps){
   const room=rooms.find(r=>r.id===h.id);assert.ok(room);

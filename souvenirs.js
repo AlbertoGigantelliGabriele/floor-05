@@ -1,6 +1,6 @@
 import * as THREE from './vendor/three.module.min.js';
-import {souvenirHeaps} from './souvenir-layout.js';
-import {zoneAt} from './layout.js';
+import {souvenirHeaps as originalHeaps} from './souvenir-layout.js';
+import {zoneAt,souvenirHeaps} from './layout.js';
 import {surfaceColumns,settle,placementLift} from './packing.js';
 import {placements} from './souvenir-placements.js';
 import {createEiffelStudy} from './eiffel-study.js';
@@ -93,7 +93,7 @@ export function buildSouvenirs(lightAt,repack=false){
       part(new THREE.TorusGeometry(.085,.018,10,24),brass,-.22,.75,0);cylinder(.07,.09,.055,brass,-.22,.66);
     }
   };
-  for(const heap of souvenirHeaps){
+  for(const heap of (repack?originalHeaps:souvenirHeaps)){
     const occupied=new Map();
     for(let i=0;i<heap.count;i++){
       current=[];models[heap.cities[i%heap.cities.length]]();

@@ -1,7 +1,7 @@
 // Approved continuous floor plan. Coordinates and clearances are in metres.
-import {souvenirHeaps} from './souvenir-layout.js';
-export const WIDTH=64, DEPTH=69;
-export const rooms=[
+import {souvenirHeaps as originalHeaps} from './souvenir-layout.js';
+export const WIDTH=102, DEPTH=116;
+const templates=[
   {id:'entry',x:28,z:61,w:8,d:6},{id:'yellow',x:26,z:46,w:12,d:8},
   {id:'repeat1',x:14,z:46,w:8,d:7},{id:'repeat2',x:42,z:46,w:8,d:7},
   {id:'repeat3',x:15,z:57,w:8,d:7},{id:'repeat4',x:43,z:57,w:8,d:7},
@@ -16,36 +16,70 @@ export const rooms=[
   {id:'empty6',x:16,z:34,w:7,d:3},{id:'empty7',x:41,z:33,w:6,d:4},
   {id:'letter',x:27,z:2,w:10,d:6},{id:'box',x:43,z:2,w:8,d:6}
 ];
-export const corridors=[
-  [31,54,2,7],[22,49,4,2],[38,49,4,2],[18,53,2,4],[22,60,9,2],
-  [46,53,2,4],[33,60,10,2],[31,40,2,6],[9,39,28,2],[35,39,2,5],
-  [35,42,22,2],[31,36,2,3],[8,41,2,3],[55,44,2,1],[5,53,2,4],
-  [10,60,5,2],[56,54,2,4],[51,60,3,2],[9,33,2,6],[9,20,2,5],
-  [13,15,5,2],[27,15,4,2],[39,15,5,2],[51,20,2,5],[53,33,2,9],
-  [15,29,10,2],[31,20,2,4],[7,9,2,3],[19,8,2,4],[58,9,2,8],
-  [54,15,4,2],[20,20,2,2],[45,25,3,2],[19,37,2,2],[43,37,2,5],
-  [2,22,2,5],[2,25,3,2],[31,8,2,4],[33,10,3,2],[34,11,2,1],[37,4,6,2],
-  // Narrow passages traced on the annotated plan (one grid cell wide).
-  [10,5,6,1],[23,5,4,1],[51,4,5,1],[48,8,1,4],[3,9,1,13],
-  [23,25,2,1],[16,31,1,3],[42,28,1,5],[24,41,1,8],[50,48,4,1]
-];
-export const pools=[{x:46,z:13.5,w:5,d:5},{x:49.5,z:26.7,w:6,d:4},{x:57,z:4,w:3,d:3}];
-export const columns=[
+const originalPools=[{x:46,z:13.5,w:5,d:5},{x:49.5,z:26.7,w:6,d:4},{x:57,z:4,w:3,d:3}];
+const originalColumns=[
   [28,26,.7,.7],[35,26,.7,.7],[28,33,.7,.7],[35,33,.7,.7],
   [29,48,.55,2.8],[35,48,.55,2.8],[16,48,.55,2],[46,48,.55,2],
   [17,58,.55,2.7],[49,59,.55,2],[4,58,.55,2.7],[59,59,.55,2],
   [6,5,.5,2],[18,4,.5,2]
 ];
-export const floor=Array.from({length:DEPTH},()=>Array(WIDTH).fill(false));
-function carve(x,z,w,d){for(let j=z;j<z+d;j++)for(let i=x;i<x+w;i++)floor[j][i]=true;}
-rooms.forEach(r=>carve(r.x,r.z,r.w,r.d));corridors.forEach(c=>carve(...c));
-export const isFloor=(x,z)=>!!floor[Math.floor(z)]?.[Math.floor(x)];
-export function zoneAt(x,z){
-  if(z<12&&x>=27&&x<52)return 'yellow';
-  if((x>=30&&z<24)||(x>=40&&z<38))return 'pool';
-  if((x<25&&z<39)||(x<30&&z<22))return 'hospital';
-  return 'yellow';
+// Shuffle complete room interiors once per page load. All measurements are metres.
+const shuffled=templates.slice(1);
+for(let i=shuffled.length-1;i>0;i--){
+  const j=Math.floor(Math.random()*(i+1));
+  [shuffled[i],shuffled[j]]=[shuffled[j],shuffled[i]];
 }
+function styleOf(room){
+  const x=room.x+room.w/2,z=room.z+room.d/2;
+  if(z<12 && x>=27 && x<52)return 'yellow';
+  if((x>=30 && z<24)||(x>=40 && z<38))return 'pool';
+  return ((x<25 && z<39)||(x<30 && z<22))?'hospital':'yellow';
+}
+function place(source,cx,cz){
+  const x=cx-Math.floor(source.w/2),z=cz-Math.floor(source.d/2);
+  return {...source,x,z,dx:x-source.x,dz:z-source.z,style:styleOf(source)};
+}
+const grid=shuffled.map((room,i)=>place(room,10+(i%5)*20,10+Math.floor(i/5)*20));
+const entry=place(templates[0],50,110);
+export const spawn={x:50,z:111.2};
+export const rooms=[entry,...grid];
+function owner(x,z){
+  const source=templates.find(r=>x>=r.x && x<r.x+r.w && z>=r.z && z<r.z+r.d);
+  return rooms.find(r=>r.id===source.id);
+}
+export const pools=originalPools.map(p=>{
+  const r=owner(p.x,p.z);return {...p,x:p.x+r.dx,z:p.z+r.dz};
+});
+export const columns=originalColumns.map(([x,z,w,d])=>{
+  const r=owner(x,z);return [x+r.dx,z+r.dz,w,d];
+});
+export const souvenirHeaps=originalHeaps.map(h=>{
+  const r=rooms.find(r=>r.id===h.id);return {...h,x:h.x+r.dx,z:h.z+r.dz};
+});
+export const corridors=[];
+const floorStyles=Array.from({length:DEPTH},()=>Array(WIDTH).fill(null));
+function carve(x,z,w,d,style){
+  for(let j=z;j<z+d;j++)for(let i=x;i<x+w;i++)floorStyles[j][i]=style;
+}
+for(const r of rooms)carve(r.x,r.z,r.w,r.d,r.style);
+function connect(a,b,horizontal){
+  const low=Math.max(horizontal?a.z:a.x,horizontal?b.z:b.x);
+  const high=Math.min(horizontal?a.z+a.d:a.x+a.w,horizontal?b.z+b.d:b.x+b.w);
+  // Offset entrances towards one side so the opening can hide behind a corner.
+  const lane=Math.random()<.5?low:high-1;
+  const start=horizontal?a.x+a.w:a.z+a.d;
+  const length=(horizontal?b.x:b.z)-start;
+  const rect=horizontal?[start,lane,length,1]:[lane,start,1,length];
+  corridors.push(rect);carve(...rect,a.style);
+}
+for(let i=0;i<grid.length;i++){
+  if(i%5<4)connect(grid[i],grid[i+1],true);
+  if(i<20)connect(grid[i],grid[i+5],false);
+}
+connect(grid[22],entry,false);
+export const floor=floorStyles.map(row=>row.map(Boolean));
+export const isFloor=(x,z)=>!!floor[Math.floor(z)]?.[Math.floor(x)];
+export const zoneAt=(x,z)=>floorStyles[Math.floor(z)]?.[Math.floor(x)]||'yellow';
 export const heights={yellow:2.85,hospital:3.05,pool:4.25};
 export function poolAt(x,z){
   return pools.find(p=>x>=p.x && x<p.x+p.w && z>=p.z && z<p.z+p.d);
