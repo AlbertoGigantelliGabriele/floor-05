@@ -39,7 +39,7 @@ function place(source,cx,cz){
   const x=cx-Math.floor(source.w/2),z=cz-Math.floor(source.d/2);
   return {...source,x,z,dx:x-source.x,dz:z-source.z,style:styleOf(source)};
 }
-const grid=shuffled.map((room,i)=>place(room,10+(i%5)*20,10+Math.floor(i/5)*20));
+const grid=shuffled.map((room,i)=>place(room,10+(i%5)*20,i===22?94-room.d+Math.floor(room.d/2):10+Math.floor(i/5)*20));
 const entry=place(templates[0],50,110);
 export const spawn={x:50,z:111.2};
 export const rooms=[entry,...grid];
@@ -76,7 +76,9 @@ for(let i=0;i<grid.length;i++){
   if(i%5<4)connect(grid[i],grid[i+1],true);
   if(i<20)connect(grid[i],grid[i+5],false);
 }
-connect(grid[22],entry,false);
+const firstCorridor=[50,94,1,13];
+corridors.push(firstCorridor);
+carve(...firstCorridor,entry.style);
 export const floor=floorStyles.map(row=>row.map(Boolean));
 export const isFloor=(x,z)=>!!floor[Math.floor(z)]?.[Math.floor(x)];
 export const zoneAt=(x,z)=>floorStyles[Math.floor(z)]?.[Math.floor(x)]||'yellow';

@@ -1,8 +1,6 @@
 import * as THREE from './vendor/three.module.min.js';
 import {floor, isFloor, columns, lineOfSight} from './layout.js';
 
-const samples = ['docs/previews/yellow.jpg', 'docs/previews/hospital.jpg', 'docs/previews/pool.jpg'];
-
 function wallSpots() {
   const spots = [];
   floor.forEach((row,z) => row.forEach((open,x) => {
@@ -65,7 +63,7 @@ export function createApparitions(scene) {
     bounds.center.copy(spot.point);
     return frustum.intersectsSphere(bounds);
   }
-  let count=0, privateAlbum=false, texture=null, active=null, previous=null, bag=[];
+  let count=0, texture=null, active=null, previous=null, bag=[];
   let distance=4+Math.random()*3;
   async function preload() {
     if (!bag.length) {
@@ -75,25 +73,29 @@ export function createApparitions(scene) {
     let url;
     try {
       const index=bag.pop();
-      url=privateAlbum?(await window.FloorVault.photo(index)).url:samples[index];
+      url=(await window.FloorVault.photo(index)).url;
       texture=await loader.loadAsync(url);
       texture.colorSpace=THREE.SRGBColorSpace;
     } catch {setTimeout(preload,4000);}
     finally {if(url?.startsWith('blob:')) URL.revokeObjectURL(url);}
   }
   async function init() {
-    privateAlbum=await window.FloorVault.load();
-    if(privateAlbum){
-      const dialog=document.querySelector('#album-lock'), form=dialog.querySelector('form');
-      dialog.showModal();
-      count=await new Promise(resolve=>{
-        form.onsubmit=async event=>{
-          event.preventDefault();
-          try {const total=await window.FloorVault.unlock(form.elements.pass.value);form.reset();dialog.close();resolve(total);}
-          catch {form.querySelector('output').textContent='Password errata o archivio illeggibile.';}
-        };
-      });
-    } else count=samples.length;
+    const dialog=document.querySelector('#album-lock'), form=dialog.querySelector('form');
+    const archive=window.FloorVault.load();
+    dialog.showModal();
+    const passphrase=await new Promise(resolve=>{
+      form.addEventListener('submit',event=>{
+        event.preventDefault();
+        const value=form.elements.pass.value;
+        form.reset();
+        dialog.close();
+        resolve(value);
+      },{once:true});
+    });
+    if(await archive){
+      try { count=await window.FloorVault.unlock(passphrase); }
+      catch { return; }
+    }
     if(count) preload();
   }
   init();

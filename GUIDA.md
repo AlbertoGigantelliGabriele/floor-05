@@ -24,7 +24,16 @@ La pianta ha 26 ambienti: ingresso e zona centrale gialli, ala ospedaliera a sin
 - `base.css` e `index.html`: pagina a tutto schermo.
 - `vendor/`: Three.js r170 e relativa licenza MIT.
 
-Il sito è statico, pubblicato da `main` tramite GitHub Pages. I vecchi `world.js`, `style.css` e gli strumenti di cifratura sono conservati ma non caricati nella pagina attuale. Non pubblicare foto o lettere in chiaro: la parte privata verrà integrata in un secondo momento.
+## Foto private
+
+Scarica prepara_album.py sul PC. Metti i JPEG, PNG o WebP in una cartella locale, fuori dal repository. Esegui nella cartella dello script:
+
+```sh
+python -m pip install cryptography Pillow
+python prepara_album.py "foto-originali" "album.zip"
+```
+
+Scegli una frase lunga e casuale nel terminale. Estrai lo ZIP sul PC e carica in assets/ i file .bin e manifest.json insieme. Il sito chiede il passcode a ogni apertura. Puoi entrare anche lasciando vuoto il campo. Le foto appaiono durante il percorso solo con la frase dell’album. Conserva gli originali e la frase sul tuo dispositivo.
 
 ## Verifiche
 

@@ -27,7 +27,7 @@ window.FloorVault = (() => {
     );
     const clear = await crypto.subtle.decrypt({ name:'AES-GCM', iv:bytes(envelope.nonce) }, derived, bytes(envelope.ciphertext));
     const data = JSON.parse(decoder.decode(clear));
-    if (data.check !== 'FLOOR05-V1' || !Array.isArray(data.photos)) throw new Error('Frase non valida');
+    if (!Array.isArray(data.photos)) throw new Error('Frase non valida');
     key = derived; index = data;
     return data.photos.length;
   }
