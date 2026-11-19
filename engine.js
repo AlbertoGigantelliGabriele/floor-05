@@ -38,15 +38,15 @@ let last=performance.now(),time=0,steps=0,lampTimer=1,dragging=false,muted=false
 let audio=null,humGain=null,noiseGain=null,filter=null,poolGain=null,echo=null;
 let nextDrip=3;
 let footsteps=null, splashBuffer=null, splashGain=null;
-const splashBytes=fetch(new URL('./audio/pool-entry.mp3',import.meta.url))
+const splashBytes=fetch(new URL('./audio/pool-entry-soft.mp3',import.meta.url))
   .then(response=>response.ok?response.arrayBuffer():null).catch(()=>null);
 function playSplash(speed){
-  if(!splashBuffer){footsteps.play('water',false,true);return;}
+  if(!splashBuffer)return;
   const source=audio.createBufferSource(),level=audio.createGain();
   source.buffer=splashBuffer;
   source.playbackRate.value=.94+Math.random()*.12;
   level.gain.value=Math.min(.72,.33+.055*speed);
-  source.connect(level);level.connect(splashGain);level.connect(echo);
+  source.connect(level);level.connect(splashGain);
   source.onended=()=>{source.disconnect();level.disconnect();};
   source.start();
 }
