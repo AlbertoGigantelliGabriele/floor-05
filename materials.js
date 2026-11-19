@@ -199,8 +199,8 @@ export const waterFragment=`
     if(ray.y>.01)for(int i=0;i<8;i++){
       float t=(lamps[i].y-vWorld.y)/ray.y;
       vec2 d=p+ray.xz*t-lamps[i].xz;
-      float patch=exp(-pow(abs(d.x)*2.3,4.)-pow(abs(d.y)*1.6,4.));
-      color+=vec3(.85,.94,.90)*patch*(.32+.48*fresnel)*(reflectionReady>.5?.15:1.);
+      float lampHighlight=exp(-pow(abs(d.x)*2.3,4.)-pow(abs(d.y)*1.6,4.));
+      color+=vec3(.85,.94,.90)*lampHighlight*(.32+.48*fresnel)*(reflectionReady>.5?.15:1.);
     }
     vec2 edgeDistance=min(p-basinBounds.xy,basinBounds.zw-p);
     float shoreline=min(edgeDistance.x,edgeDistance.y);

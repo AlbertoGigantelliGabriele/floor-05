@@ -37,7 +37,14 @@ export function createApparitions(scene) {
     }
     return true;
   }
-  let seen=false, pendingTravel=0;
+  const frustum=new THREE.Frustum(), projection=new THREE.Matrix4();
+  const bounds=new THREE.Sphere(new THREE.Vector3(),.60);
+  let gazeTime=0, lastTime=0;
+  const direction=new THREE.Vector3(), ahead=new THREE.Vector3();
+  function onScreen(spot){
+    bounds.center.copy(spot.point);
+    return frustum.intersectsSphere(bounds);
+  }
   let count=0, privateAlbum=false, texture=null, active=null, previous=null, bag=[];
   let distance=4+Math.random()*3;
   async function preload() {
@@ -73,26 +80,41 @@ export function createApparitions(scene) {
   return (camera,travel)=>{
     if(!texture) return;
     camera.updateMatrixWorld();
+    frustum.setFromProjectionMatrix(projection.multiplyMatrices(camera.projectionMatrix,camera.matrixWorldInverse));
+    const now=performance.now()/1000,dt=Math.min(.1,now-lastTime);lastTime=now;
     if(active){
-      if(visible(camera,active,1.02)){seen=true;return;}
-      pendingTravel+=travel;
-      if(!seen && pendingTravel<14)return;
-      previous=active;active=null;print.visible=false;material.map=null;texture.dispose();texture=null;
-      distance=7+Math.random()*12;preload();return;
+      if(visible(camera,active,.90)){gazeTime+=dt;return;}
+      if(onScreen(active) && visible(camera,active,1000))return;
+      if(gazeTime>=.24){
+        previous=active;active=null;print.visible=false;material.map=null;texture.dispose();texture=null;
+        distance=5+Math.random()*8;preload();return;
+      }
+      // Keep the same photograph available if the player takes a different route.
+      if(camera.position.distanceTo(active.point)<10)return;
+      active=null;print.visible=false;distance=0;
     }
     distance-=travel;
     if(distance>0 || !travel) return;
     distance=1;
+    camera.getWorldDirection(direction);
+    ahead.copy(camera.position);
+    // Look for a wall accessible from the current path, including the next doorway.
+    for(let i=0;i<20;i++){
+      const x=ahead.x+direction.x*.25,z=ahead.z+direction.z*.25;
+      if(!isFloor(x,z))break;
+      ahead.x=x;ahead.z=z;
+    }
     const candidates=spots.filter(s=>{
       const range=camera.position.distanceTo(s.point);
-      if(range<2 || range>9 || (previous && previous.point.distanceTo(s.point)<2))return false;
-      for(const offset of [-.45,0,.45]){
-        if(lineOfSight(camera.position.x,camera.position.z,s.point.x+offset*s.nz,s.point.z-offset*s.nx))return false;
-      }
-      return true;
+      if(range<1.6 || range>9 || (previous && previous.point.distanceTo(s.point)<2))return false;
+      if((ahead.x-s.point.x)*s.nx+(ahead.z-s.point.z)*s.nz<.4)return false;
+      if(!lineOfSight(ahead.x,ahead.z,s.point.x,s.point.z))return false;
+      if(!onScreen(s))return true;
+      return [-.45,0,.45].every(offset=>!lineOfSight(camera.position.x,camera.position.z,s.point.x+offset*s.nz,s.point.z-offset*s.nx));
     });
-    if(!candidates.length) return;
-    seen=false;pendingTravel=0;active=candidates[Math.floor(Math.random()*candidates.length)];
+    if(!candidates.length)return;
+    candidates.sort((a,b)=>a.point.distanceToSquared(ahead)-b.point.distanceToSquared(ahead));
+    gazeTime=0;active=candidates[Math.floor(Math.random()*Math.min(8,candidates.length))];
     const aspect=texture.image.width/texture.image.height;
     print.scale.set(.84*Math.min(1,aspect),.84*Math.min(1,1/aspect),1);
     print.position.copy(active.point);print.rotation.y=Math.atan2(active.nx,active.nz);
