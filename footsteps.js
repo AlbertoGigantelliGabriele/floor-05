@@ -20,7 +20,7 @@ export function createFootsteps(context,echo,destination=context.destination){
   const buffer=context.createBuffer(1,Math.ceil(context.sampleRate*.28),context.sampleRate);
   const data=buffer.getChannelData(0);
   for(let i=0;i<data.length;i++)data[i]=Math.random()*2-1;
-  const surfaces={yellow:{cutoff:420,gain:.032,duration:.20},hospital:{cutoff:1450,gain:.024,duration:.12},pool:{cutoff:2100,gain:.022,duration:.13}};
+  const surfaces={water:{cutoff:3400,gain:.14,duration:.25},yellow:{cutoff:950,gain:.12,duration:.20},hospital:{cutoff:1450,gain:.085,duration:.12},pool:{cutoff:2100,gain:.08,duration:.13}};
   return {
     mute(value){output.gain.setTargetAtTime(value?0:1,context.currentTime,.025);},
     play(zone,running,landing=false){
@@ -38,7 +38,7 @@ export function createFootsteps(context,echo,destination=context.destination){
       source.onended=()=>{source.disconnect();filter.disconnect();gain.disconnect();};
       const heel=context.createOscillator(),heelGain=context.createGain();
       heel.frequency.setValueAtTime(landing?85:110,now);heel.frequency.exponentialRampToValueAtTime(48,now+.10);
-      heelGain.gain.setValueAtTime(.009*strength,now);heelGain.gain.exponentialRampToValueAtTime(.00001,now+.13);
+      heelGain.gain.setValueAtTime(.035*strength,now);heelGain.gain.exponentialRampToValueAtTime(.00001,now+.13);
       heel.connect(heelGain);heelGain.connect(output);heel.start(now);heel.stop(now+.15);
       heel.onended=()=>{heel.disconnect();heelGain.disconnect();};
     }

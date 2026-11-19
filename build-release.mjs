@@ -4,7 +4,7 @@ import {createHash} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
 execFileSync(process.execPath,[new URL('prepare-souvenirs.mjs',import.meta.url).pathname],{stdio:'inherit'});
 const root=new URL('./',import.meta.url),files={};
-for(const source of ['souvenir-layout.js','layout.js','materials.js','packing.js','souvenir-placements.js','eiffel-study.js','souvenirs.js','architecture.js','footsteps.js','reflections.js','apparitions.js','engine.js']){
+for(const source of ['souvenir-layout.js','layout.js','materials.js','packing.js','souvenir-placements.js','eiffel-study.js','souvenirs.js','architecture.js','footsteps.js','reflections.js','apparitions.js','controls.js','engine.js']){
   let content=readFileSync(new URL(source,root),'utf8');
   for(const [dependency,built] of Object.entries(files)){
     const pattern=new RegExp("\\./"+dependency.replaceAll('.','\\.')+"(?:\\?[^'\"]*)?",'g');

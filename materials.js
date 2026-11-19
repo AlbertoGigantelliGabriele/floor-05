@@ -152,7 +152,7 @@ export const fragmentShader=`
         for(int i=0;i<8;i++){
           float t=(lamps[i].y-vWorld.y)/ray.y;
           vec2 d=vWorld.xz+ray.xz*t-lamps[i].xz;
-          float halo=exp(-pow(d.x*2.8,4.)-pow(d.y*1.6,4.))*.65+exp(-dot(d,d)*1.4)*.18;
+          float halo=exp(-pow(d.x*2.8,4.)-pow(abs(d.y)*1.6,4.))*.65+exp(-dot(d,d)*1.4)*.18;
           float falloff=1./(1.+t*.08);
           color+=vec3(.72,.82,.7)*halo*falloff*gloss;
         }
@@ -174,7 +174,7 @@ export const waterVertex=`
 `;
 export const waterFragment=`
   uniform float time;uniform vec3 lamps[8];uniform vec3 fogColor;uniform float fogDensity;
-  uniform sampler2D reflectionMap;uniform mat4 reflectionMatrix;uniform float reflectionReady;
+  uniform vec4 basinBounds;uniform sampler2D reflectionMap;uniform mat4 reflectionMatrix;uniform float reflectionReady;
   varying vec3 vWorld;
   void main(){
     vec2 p=vWorld.xz;
@@ -183,15 +183,15 @@ export const waterFragment=`
     vec3 v=normalize(cameraPosition-vWorld);
     float fresnel=pow(1.-max(dot(n,v),0.),3.);
     // Same 15 cm mosaic as the basin geometry; only a subtle refraction offset.
-    vec2 uv=p/.15+vec2(a,b)*.035;
+    vec2 uv=(p-v.xz*.50/max(.45,v.y))/.15+vec2(a,b)*.12;
     vec2 tile=abs(fract(uv)-.5);
     float grout=smoothstep(.47,.49,max(tile.x,tile.y));
-    float caustic=pow(max(0.,1.-abs(sin(p.x*8.+sin(p.y*5.+time*.3))+cos(p.y*7.-time*.36))*.5),12.)*.035;
-    vec3 color=mix(vec3(.085,.28,.32),vec3(.22,.40,.43),fresnel);
+    float caustic=pow(max(0.,1.-abs(sin(p.x*8.+sin(p.y*5.+time*.3))+cos(p.y*7.-time*.36))*.5),8.)*.095;
+    vec3 color=mix(vec3(.018,.21,.29),vec3(.22,.40,.43),fresnel);
     color*=1.-grout*.22;color+=caustic;
     if(reflectionReady>.5){
       vec4 projected=reflectionMatrix*vec4(vWorld,1.);
-      vec2 screen=projected.xy/projected.w+vec2(a,b)*.0018;
+      vec2 screen=projected.xy/projected.w+vec2(a,b)*.006;
       vec3 reflected=texture2D(reflectionMap,clamp(screen,.001,.999)).rgb;
       color=mix(color,reflected,.26+.48*fresnel);
     }
@@ -199,9 +199,12 @@ export const waterFragment=`
     if(ray.y>.01)for(int i=0;i<8;i++){
       float t=(lamps[i].y-vWorld.y)/ray.y;
       vec2 d=p+ray.xz*t-lamps[i].xz;
-      float patch=exp(-pow(d.x*2.3,4.)-pow(d.y*1.6,4.));
+      float patch=exp(-pow(abs(d.x)*2.3,4.)-pow(abs(d.y)*1.6,4.));
       color+=vec3(.85,.94,.90)*patch*(.32+.48*fresnel)*(reflectionReady>.5?.15:1.);
     }
+    vec2 edgeDistance=min(p-basinBounds.xy,basinBounds.zw-p);
+    float shoreline=min(edgeDistance.x,edgeDistance.y);
+    color+=vec3(.16,.29,.30)*(1.-smoothstep(.008,.048,shoreline));
     float dist=length(cameraPosition-vWorld);
     color=mix(color,fogColor,min(.7,1.-exp(-fogDensity*fogDensity*dist*dist)));
     gl_FragColor=vec4(color,1.);

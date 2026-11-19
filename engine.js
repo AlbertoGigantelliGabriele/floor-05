@@ -2,7 +2,7 @@ import {createApparitions} from './apparitions.js';
 import * as THREE from './vendor/three.module.min.js';
 import {createTextures} from './materials.js?v=seam-fix-5';
 import {buildArchitecture} from './architecture.js?v=seam-fix-5';
-import {zoneAt,movePlayer,heights} from './layout.js';
+import {zoneAt,poolAt,movePlayer,heights} from './layout.js';
 import {installTouchControls,createJump} from './controls.js?v=touch-1';
 import {createGait,createFootsteps} from './footsteps.js';
 import {createReflections} from './reflections.js';
@@ -57,9 +57,9 @@ function startAudio(){
   limiter.threshold.value=-8;limiter.knee.value=6;limiter.ratio.value=8;limiter.attack.value=.003;limiter.release.value=.15;
   master.connect(limiter);limiter.connect(audio.destination);
   humGain=audio.createGain();humGain.gain.value=.011;humGain.connect(master);
-  for(const hz of [50,100,100.7]){const osc=audio.createOscillator();osc.type='sine';osc.frequency.value=hz;osc.connect(humGain);osc.start();}
+  for(const hz of [100,150,201]){const osc=audio.createOscillator();osc.type='sine';osc.frequency.value=hz;osc.connect(humGain);osc.start();}
   const buffer=audio.createBuffer(1,audio.sampleRate*3,audio.sampleRate),data=buffer.getChannelData(0);
-  let previous=0;for(let i=0;i<data.length;i++){previous=(previous+Math.random()*.03-.015)*.98;data[i]=previous;}
+  let previous=0;for(let i=0;i<data.length;i++){previous=(previous+Math.random()*.10-.05)*.98;data[i]=previous;}
   const source=audio.createBufferSource();source.buffer=buffer;source.loop=true;
   filter=audio.createBiquadFilter();filter.type='lowpass';filter.frequency.value=850;
   noiseGain=audio.createGain();noiseGain.gain.value=.07;
@@ -116,25 +116,27 @@ function animate(now){
   requestAnimationFrame(animate);
   if(document.hidden)return;
   const dt=Math.min(.05,(now-last)/1000);last=now;time+=dt;
-  let forward=Number(touch.forward||keys.has('KeyW')||keys.has('ArrowUp'))-Number(keys.has('KeyS')||keys.has('ArrowDown'));
-  let sideways=Number(keys.has('KeyD')||keys.has('ArrowRight'))-Number(keys.has('KeyA')||keys.has('ArrowLeft'));
+  let forward=touch.y+Number(touch.forward||keys.has('KeyW')||keys.has('ArrowUp'))-Number(keys.has('KeyS')||keys.has('ArrowDown'));
+  let sideways=touch.x+Number(keys.has('KeyD')||keys.has('ArrowRight'))-Number(keys.has('KeyA')||keys.has('ArrowLeft'));
   const length=Math.hypot(forward,sideways);
   const running=touch.running||keys.has('ShiftLeft')||keys.has('ShiftRight');
   const oldX=player.x,oldZ=player.z;
   if(length){
-    forward/=length;sideways/=length;
+    forward/=Math.max(1,length);sideways/=Math.max(1,length);
     const speed=(running?3.8:2.35)*dt;
     movePlayer(player,(-Math.sin(player.yaw)*forward+Math.cos(player.yaw)*sideways)*speed,
-      (-Math.cos(player.yaw)*forward-Math.sin(player.yaw)*sideways)*speed);
+      (-Math.cos(player.yaw)*forward-Math.sin(player.yaw)*sideways)*speed,jump.feet);
   }
   const travel=Math.hypot(player.x-oldX,player.z-oldZ);
-  const elevation=jump.update(dt,heights[zoneAt(player.x,player.z)]);
-  if(!elevation)steps+=travel;
+  const basin=poolAt(player.x,player.z), ground=basin?-.72:0, before=jump.feet;
+  const elevation=jump.update(dt,heights[zoneAt(player.x,player.z)],ground);
+  if(basin && before>-.22 && elevation<=-.22 && !muted)footsteps?.play('water',false,true);
+  if(elevation===ground)steps+=travel;
   camera.position.set(player.x,1.66+elevation+(travel>.0001&&!elevation&&!reduceMotion?Math.sin(steps*8)*.012:0),player.z);
   camera.rotation.set(player.pitch,player.yaw,0,'YXZ');
   const zone=zoneAt(player.x,player.z),mood=moods[zone];
-  const footfall=gait.update(travel,elevation,running);
-  if(footfall&&audio?.state==='running'&&!muted)footsteps.play(zone,running,footfall==='land');
+  const footfall=gait.update(travel,elevation-ground,running);
+  if(footfall&&audio?.state==='running'&&!muted)footsteps.play(basin?'water':zone,running,footfall==='land');
   fogTarget.set(mood.fog);uniforms.fogColor.value.lerp(fogTarget,1-Math.exp(-dt*2));
   uniforms.fogDensity.value+=(mood.density-uniforms.fogDensity.value)*Math.min(1,dt*2);
   uniforms.time.value=reduceMotion?0:time;scene.background=uniforms.fogColor.value;
@@ -148,7 +150,7 @@ function animate(now){
     const closest=uniforms.lamps.value[0];
     const proximity=1/(1+Math.hypot(closest.x-player.x,closest.z-player.z)*.6);
     const buzz=zone==='yellow'?.005+proximity*.009*(.92+.08*Math.sin(time*.64)):zone==='pool'?.002:.008;
-    humGain.gain.setTargetAtTime(muted?0:buzz,audio.currentTime,.4);
+    humGain.gain.setTargetAtTime(muted?0:buzz*2.6,audio.currentTime,.4);
     noiseGain.gain.setTargetAtTime(muted?0:zone==='pool'?.11*(.88+.12*Math.sin(time*.37)):zone==='hospital'?.04:.055,audio.currentTime,.4);
     filter.frequency.setTargetAtTime(zone==='pool'?1100:zone==='hospital'?340:650,audio.currentTime,.5);
     poolGain.gain.setTargetAtTime(muted||zone!=='pool'?0:.45,audio.currentTime,.3);

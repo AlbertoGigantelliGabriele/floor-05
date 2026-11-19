@@ -10,7 +10,7 @@ export function mirrorCamera(source,height=-.22){
   return {camera,matrix};
 }
 export function createReflections(renderer,scene,waterMeshes,shared){
-  const target=new THREE.WebGLRenderTarget(512,512,{type:THREE.HalfFloatType,depthBuffer:true});
+  const target=new THREE.WebGLRenderTarget(512,512,{type:renderer.extensions.has('EXT_color_buffer_float')?THREE.HalfFloatType:THREE.UnsignedByteType,depthBuffer:true});
   const enabled={value:0},matrix={value:new THREE.Matrix4()};
   for(const mesh of waterMeshes)Object.assign(mesh.material.uniforms,{reflectionMap:{value:target.texture},reflectionMatrix:matrix,reflectionReady:enabled});
   let last=-Infinity;

@@ -1,14 +1,15 @@
 {
   "souvenir-layout.js": "souvenir-layout.96b49d21ce7e.js",
-  "layout.js": "layout.597fdb523c66.js",
-  "materials.js": "materials.783e2c21e6f0.js",
+  "layout.js": "layout.0ecfd01fb8df.js",
+  "materials.js": "materials.f8f9974d1da5.js",
   "packing.js": "packing.2cbc61a62d51.js",
   "souvenir-placements.js": "souvenir-placements.2e9dd1d8941f.js",
   "eiffel-study.js": "eiffel-study.1a7b995af2d0.js",
-  "souvenirs.js": "souvenirs.dbddfe061534.js",
-  "architecture.js": "architecture.bb7faa265011.js",
-  "footsteps.js": "footsteps.c695836b1569.js",
-  "reflections.js": "reflections.f503813464f1.js",
-  "apparitions.js": "apparitions.8bea85d2ed08.js",
-  "engine.js": "engine.c91e6ac2c800.js"
+  "souvenirs.js": "souvenirs.3066b147e442.js",
+  "architecture.js": "architecture.c6483c15f531.js",
+  "footsteps.js": "footsteps.b8b006569e97.js",
+  "reflections.js": "reflections.b58f212d2bfb.js",
+  "apparitions.js": "apparitions.d11e39fe0888.js",
+  "controls.js": "controls.b08bbf058d81.js",
+  "engine.js": "engine.ae665d938734.js"
 }

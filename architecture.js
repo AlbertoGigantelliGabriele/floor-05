@@ -153,7 +153,7 @@ export function buildArchitecture(scene,textures,shared){
     const visible=lamps.filter(l=>l.zone==='pool'&&lineOfSight(cx,cz,l.x,l.z))
       .sort((a,b)=>Math.hypot(a.x-cx,a.z-cz)-Math.hypot(b.x-cx,b.z-cz)).slice(0,8);
     const localLamps=Array.from({length:8},(_,i)=>visible[i]?new THREE.Vector3(visible[i].x,visible[i].y,visible[i].z):new THREE.Vector3(1000,1000,1000));
-    const waterMaterial=new THREE.ShaderMaterial({vertexShader:waterVertex,fragmentShader:waterFragment,uniforms:{...shared,reflectionReady:{value:0},reflectionMap:{value:null},reflectionMatrix:{value:new THREE.Matrix4()},lamps:{value:localLamps}}});
+    const waterMaterial=new THREE.ShaderMaterial({vertexShader:waterVertex,fragmentShader:waterFragment,uniforms:{...shared,basinBounds:{value:new THREE.Vector4(p.x,p.z,p.x+p.w,p.z+p.d)},reflectionReady:{value:0},reflectionMap:{value:null},reflectionMatrix:{value:new THREE.Matrix4()},lamps:{value:localLamps}}});
     const geo=new THREE.PlaneGeometry(p.w,p.d);geo.rotateX(-Math.PI/2);
     const mesh=new THREE.Mesh(geo,waterMaterial);mesh.position.set(p.x+p.w/2,-.22,p.z+p.d/2);scene.add(mesh);
     waterMeshes.push(mesh);

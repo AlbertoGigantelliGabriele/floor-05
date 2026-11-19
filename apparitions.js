@@ -37,6 +37,7 @@ export function createApparitions(scene) {
     }
     return true;
   }
+  let seen=false, pendingTravel=0;
   let count=0, privateAlbum=false, texture=null, active=null, previous=null, bag=[];
   let distance=4+Math.random()*3;
   async function preload() {
@@ -73,7 +74,9 @@ export function createApparitions(scene) {
     if(!texture) return;
     camera.updateMatrixWorld();
     if(active){
-      if(visible(camera,active,1.02)) return;
+      if(visible(camera,active,1.02)){seen=true;return;}
+      pendingTravel+=travel;
+      if(!seen && pendingTravel<14)return;
       previous=active;active=null;print.visible=false;material.map=null;texture.dispose();texture=null;
       distance=7+Math.random()*12;preload();return;
     }
@@ -82,10 +85,14 @@ export function createApparitions(scene) {
     distance=1;
     const candidates=spots.filter(s=>{
       const range=camera.position.distanceTo(s.point);
-      return range>1.5 && range<8 && (!previous || previous.point.distanceTo(s.point)>2) && visible(camera,s,.8);
+      if(range<2 || range>9 || (previous && previous.point.distanceTo(s.point)<2))return false;
+      for(const offset of [-.45,0,.45]){
+        if(lineOfSight(camera.position.x,camera.position.z,s.point.x+offset*s.nz,s.point.z-offset*s.nx))return false;
+      }
+      return true;
     });
     if(!candidates.length) return;
-    active=candidates[Math.floor(Math.random()*candidates.length)];
+    seen=false;pendingTravel=0;active=candidates[Math.floor(Math.random()*candidates.length)];
     const aspect=texture.image.width/texture.image.height;
     print.scale.set(.84*Math.min(1,aspect),.84*Math.min(1,1/aspect),1);
     print.position.copy(active.point);print.rotation.y=Math.atan2(active.nx,active.nz);

@@ -47,7 +47,10 @@ export function zoneAt(x,z){
   return 'yellow';
 }
 export const heights={yellow:2.85,hospital:3.05,pool:4.25};
-export function collides(x,z,r=.23){
+export function poolAt(x,z){
+  return pools.find(p=>x>=p.x && x<p.x+p.w && z>=p.z && z<p.z+p.d);
+}
+export function collides(x,z,r=.23,feet=0,basin=null){
   for(const heap of souvenirHeaps)if(Math.hypot(x-heap.x,z-heap.z)<heap.r+r)return true;
   for(let j=Math.floor(z-r);j<=Math.floor(z+r);j++)for(let i=Math.floor(x-r);i<=Math.floor(x+r);i++){
     if(floor[j]?.[i])continue;
@@ -58,17 +61,20 @@ export function collides(x,z,r=.23){
     const dx=x-Math.max(bx,Math.min(x,bx+w)),dz=z-Math.max(bz,Math.min(z,bz+d));
     if(dx*dx+dz*dz<r*r)return true;
   }
+  if(feet>.015)return false;
+  if(basin)return x<basin.x+r || x>basin.x+basin.w-r || z<basin.z+r || z>basin.z+basin.d-r;
   for(const p of pools){
     const dx=x-Math.max(p.x,Math.min(x,p.x+p.w)),dz=z-Math.max(p.z,Math.min(z,p.z+p.d));
     if(dx*dx+dz*dz<r*r)return true;
   }
   return false;
 }
-export function movePlayer(state,dx,dz){
+export function movePlayer(state,dx,dz,feet=0){
+  const basin=poolAt(state.x,state.z);
   const steps=Math.max(1,Math.ceil(Math.hypot(dx,dz)/.12));
   for(let n=0;n<steps;n++){
-    if(!collides(state.x+dx/steps,state.z))state.x+=dx/steps;
-    if(!collides(state.x,state.z+dz/steps))state.z+=dz/steps;
+    if(!collides(state.x+dx/steps,state.z,.23,feet,basin))state.x+=dx/steps;
+    if(!collides(state.x,state.z+dz/steps,.23,feet,basin))state.z+=dz/steps;
   }
 }
 export function lineOfSight(x,z,tx,tz){

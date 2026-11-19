@@ -12,3 +12,6 @@ body{font-family:Arial,sans-serif}
 @media(any-pointer:coarse){body.scene-ready #touch-controls{display:flex}}
 body.scene-ready.has-touch #touch-controls{display:flex}
 #failure{z-index:3}
+
+#touch-controls [data-action=stick]{width:100px;height:100px;border-radius:50%;display:grid;place-items:center;padding:0;background:#191c1577}
+#touch-controls [data-action=stick] span{width:39px;height:39px;border-radius:50%;background:#eee9d9aa;border:1px solid #fff9;transform:translate(var(--x,0px),var(--y,0px));pointer-events:none}
