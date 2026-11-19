@@ -22,12 +22,8 @@ export function createApparitions(scene) {
   const print = new THREE.Mesh(new THREE.PlaneGeometry(1,1),material);
   print.visible = false;
   scene.add(print);
-  const projected = new THREE.Vector3();
-  function visible(camera,spot,limit) {
-    const p = spot.point, dx = camera.position.x-p.x, dz = camera.position.z-p.z;
-    if (dx*spot.nx+dz*spot.nz <= 0) return false;
-    projected.copy(p).project(camera);
-    if (projected.z < -1 || projected.z > 1 || Math.abs(projected.x)>limit || Math.abs(projected.y)>limit) return false;
+  function unobstructed(camera,p) {
+    const dx=camera.position.x-p.x, dz=camera.position.z-p.z;
     if (!lineOfSight(p.x,p.z,camera.position.x,camera.position.z)) return false;
     // Interior pillars also block sight, although their floor cells are open.
     for (const [x,z,w,d] of columns) {
@@ -39,7 +35,31 @@ export function createApparitions(scene) {
   }
   const frustum=new THREE.Frustum(), projection=new THREE.Matrix4();
   const bounds=new THREE.Sphere(new THREE.Vector3(),.60);
-  let gazeTime=0, lastTime=0;
+  let seen=false;
+  // Clip the actual print against the camera planes, including at oblique angles.
+  function visiblePrint(camera,spot){
+    const {point,nx,nz}=spot;
+    if((camera.position.x-point.x)*nx+(camera.position.z-point.z)*nz<=0)return false;
+    const halfWidth=print.scale.x/2, halfHeight=print.scale.y/2;
+    let polygon=[[-1,-1],[1,-1],[1,1],[-1,1]].map(([x,y])=>
+      new THREE.Vector3(point.x+nz*x*halfWidth,point.y+y*halfHeight,point.z-nx*x*halfWidth));
+    for(const plane of frustum.planes){
+      const clipped=[];
+      let prev=polygon[polygon.length-1], a=plane.distanceToPoint(prev);
+      for(const next of polygon){
+        const b=plane.distanceToPoint(next);
+        if((a>=0)!==(b>=0))clipped.push(prev.clone().lerp(next,a/(a-b)));
+        if(b>=0)clipped.push(next);
+        prev=next;a=b;
+      }
+      if(!clipped.length)return false;
+      polygon=clipped;
+    }
+    const center=new THREE.Vector3();
+    for(const vertex of polygon)center.add(vertex);
+    center.divideScalar(polygon.length);
+    return unobstructed(camera,center)||polygon.some(vertex=>unobstructed(camera,vertex));
+  }
   const direction=new THREE.Vector3(), ahead=new THREE.Vector3();
   function onScreen(spot){
     bounds.center.copy(spot.point);
@@ -81,11 +101,9 @@ export function createApparitions(scene) {
     if(!texture) return;
     camera.updateMatrixWorld();
     frustum.setFromProjectionMatrix(projection.multiplyMatrices(camera.projectionMatrix,camera.matrixWorldInverse));
-    const now=performance.now()/1000,dt=Math.min(.1,now-lastTime);lastTime=now;
     if(active){
-      if(visible(camera,active,.90)){gazeTime+=dt;return;}
-      if(onScreen(active) && visible(camera,active,1000))return;
-      if(gazeTime>=.24){
+      if(visiblePrint(camera,active)){seen=true;return;}
+      if(seen){
         previous=active;active=null;print.visible=false;material.map=null;texture.dispose();texture=null;
         distance=5+Math.random()*8;preload();return;
       }
@@ -114,7 +132,7 @@ export function createApparitions(scene) {
     });
     if(!candidates.length)return;
     candidates.sort((a,b)=>a.point.distanceToSquared(ahead)-b.point.distanceToSquared(ahead));
-    gazeTime=0;active=candidates[Math.floor(Math.random()*Math.min(8,candidates.length))];
+    seen=false;active=candidates[Math.floor(Math.random()*Math.min(8,candidates.length))];
     const aspect=texture.image.width/texture.image.height;
     print.scale.set(.84*Math.min(1,aspect),.84*Math.min(1,1/aspect),1);
     print.position.copy(active.point);print.rotation.y=Math.atan2(active.nx,active.nz);
